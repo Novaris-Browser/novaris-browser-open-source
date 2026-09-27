@@ -1,3 +1,66 @@
+Blocking ads that a site serves from its own domain
+==================================================
+
+Most ad blocking is about remote hosts: the ad comes from
+ads.example.net and the rule names that host. A large share of ad code is not
+like that. The script sits on the site's own server, next to the site's own
+code, and only the request path gives it away. Those were not blocked before,
+because the browser matched on the host and the host was the site's own.
+
+Version 0.8.2 blocks ad scripts by their path as well as by their host.
+
+
+Matching on whole path segments
+-------------------------------
+
+A rule of "ads.js", matched as plain text, also matches downloads.js, uploads.js,
+leads.js, threads.js, heads.js and roads.js. Blocking those would break the
+download button, the upload widget and the comments section of a large part of
+the web. A privacy feature that breaks the page it is meant to clean up is
+worse than a missed ad.
+
+Every rule therefore begins with a slash, which means the match has to start at
+a path separator. /js/ads.js is blocked. /js/downloads.js is not.
+
+
+What is matched
+---------------
+
+Scripts by name: ads.js, ad.js, adsbygoogle.js, pagead.js, pagead2.js,
+adsense.js, adcode.js, advertising.js, adframe-rotator.js.
+
+Asset directories, but only for files that can never be a page someone meant to
+open: /static/ads/, /static/ad/, /adserver/, /adserver2/, /adframe/,
+/ad-assets/, /ads/serve/, /ad-frames/, /advertising/. A site with a real /ads/
+page keeps its page. Directory rules do not apply to navigation at all.
+
+
+An exception that actually works
+--------------------------------
+
+When a rule goes too far, you need to be able to put the one file back.
+@@||example.com/js/ads.js did nothing, because the filter parser read the path
+as part of the domain name and could never match it. Filters of the form
+||example.com/some/path now work for both blocking and allowing, so an
+exception is possible.
+
+
+Not changed
+-----------
+
+The host list you asked for was already blocked. Amazon advertising, AdColony,
+Facebook's pixel, the Twitter, LinkedIn, Reddit, YouTube, Pinterest and TikTok
+ad and telemetry hosts, Freshmarketer and Google Analytics click tracking were
+all already covered, most of it since earlier versions.
+
+One is not, by choice. Mouseflow is session replay: it records the session
+itself, including movement, clicks and the text typed into forms. It is the most
+privacy-sensitive host in the project, and it is still opt-in rather than
+default, because a site owner can gate content behind a replay-driven flow and
+whether to accept that trade is your decision, not a default worth imposing.
+Turn on strict blocking to include it.
+
+
 Side panel, media controls, saved pages and tab transfer
 =======================================================
 

@@ -20,8 +20,8 @@
   // to be the published one: the feed decides, and a mismatch is stated rather
   // than hidden.
   var NOTES_VERSION = '0.7.5';
-  var FALLBACK_VERSION = '0.7.5';
-  var FALLBACK_BYTES = 114415662;
+  var FALLBACK_VERSION = '0.8.2';
+  var FALLBACK_BYTES = 114448042;
 
   var $ = function (selector, root) { return (root || document).querySelector(selector); };
   var $$ = function (selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); };
@@ -114,6 +114,15 @@
       $$('[data-hash]').forEach(function (node) { node.textContent = info.hash; });
     }
 
+    // The file name is written into the verification commands so they cannot go
+    // stale pointing at an old release. Only the version is substituted, so the
+    // published name in latest.yml and the name in the command cannot drift.
+    if (info.version) {
+      $$('[data-file]').forEach(function (node) {
+        node.textContent = node.textContent.replace(/VERSION/g, info.version);
+      });
+    }
+
     $$('[data-status]').forEach(function (node) {
       node.classList.remove('is-offline');
       node.classList.add('is-current');
@@ -144,6 +153,12 @@
       if (node.textContent.indexOf('Loading') === 0) {
         node.textContent = 'Published hash could not be read. Open the download page with an internet connection, or read it from the update feed directly.';
       }
+    });
+    // The verification commands still need a file name to be runnable. Naming
+    // the built-in version keeps them copy-and-pasteable, and the page already
+    // says above that the feed was not confirmed.
+    $$('[data-file]').forEach(function (node) {
+      node.textContent = node.textContent.replace(/VERSION/g, FALLBACK_VERSION);
     });
     if (reason) console.info('Novaris site: using the built-in release details.', reason);
   }
@@ -281,12 +296,14 @@
         copyText(hash.trim(), 'Hash copied.');
       });
     }
-    var copyCode = $('[data-copy-code]');
-    if (copyCode) {
-      copyCode.addEventListener('click', function () {
-        copyText((copyCode.previousElementSibling || {}).textContent || '', 'Command copied.');
+    // Every copy-code button, not just the first one on the page. Each reads its
+    // own sibling at click time, so a command whose file name was filled in from
+    // the live feed is copied with that name already substituted.
+    $$('[data-copy-code]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        copyText((button.previousElementSibling || {}).textContent || '', 'Command copied.');
       });
-    }
+    });
   }
 
   /* ---------------------------------------------------------------------

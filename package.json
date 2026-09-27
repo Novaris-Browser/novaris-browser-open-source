@@ -1,6 +1,6 @@
 {
   "name": "novaris-browser",
-  "version": "0.7.5",
+  "version": "0.8.2",
   "description": "A secure, glass-inspired desktop web browser built with Electron and Chromium.",
   "main": "electron/main.js",
   "author": "Novaris Browser",
@@ -66,14 +66,13 @@
         }
       ],
       "artifactName": "Novaris-Browser-${version}-Setup.${ext}",
-      "signingHashAlgorithms": [
-        "sha256",
-        "sha384",
-        "sha512"
-      ],
-      "rfc3161TimeStampServer": "http://timestamp.digicert.com",
-      "timeStampServerName": "DigiCert",
-      "verifyUpdateCodeSignature": true
+      "verifyUpdateCodeSignature": true,
+      "signtoolOptions": {
+        "signingHashAlgorithms": [
+          "sha256"
+        ],
+        "rfc3161TimeStampServer": "http://timestamp.digicert.com"
+      }
     },
     "protocols": [
       {

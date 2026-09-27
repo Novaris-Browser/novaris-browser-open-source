@@ -135,9 +135,15 @@
         two strings match, you have the file we published.
       </p>
       <div class="hash" style="margin-top:12px">
-        <code>(Get-FileHash ".\Novaris-Browser-0.7.5-Setup.exe" -Algorithm SHA512).Hash</code>
+        <code data-file>$b=[IO.File]::ReadAllBytes(".\Novaris-Browser-VERSION-Setup.exe"); [Convert]::ToBase64String([Security.Cryptography.SHA512]::Create().ComputeHash($b))</code>
         <button class="btn btn-sm" type="button" data-copy-code>Copy</button>
       </div>
+      <p style="margin-top:10px;color:var(--ink-faint);font-size:0.8rem;line-height:1.6">
+        The command ends in <code>ToBase64String</code> on purpose. The feed publishes the
+        hash as Base64, and PowerShell's <code>Get-FileHash</code> prints it as hex, so the
+        two would never match and a genuine file would look tampered with. Converting to
+        Base64 makes the comparison like for like.
+      </p>
       <p style="margin-top:12px">
         <strong>Do not</strong> download from a third-party mirror, an "official download"
         button on someone else's site, or a file-sharing link. A mirror can serve you
@@ -172,7 +178,7 @@
       <h3><span class="card-icon" aria-hidden="true">$_</span> Compare it in PowerShell</h3>
       <p>Paste this after the download finishes. The two strings should be identical.</p>
       <div class="hash" style="margin-top:12px">
-        <code>(Get-FileHash ".\Novaris-Browser-0.7.5-Setup.exe" -Algorithm SHA512).Hash</code>
+        <code data-file>$b=[IO.File]::ReadAllBytes(".\Novaris-Browser-VERSION-Setup.exe"); [Convert]::ToBase64String([Security.Cryptography.SHA512]::Create().ComputeHash($b))</code>
         <button class="btn btn-sm" type="button" data-copy-code>Copy</button>
       </div>
     </article>

@@ -70,6 +70,29 @@ const AD_NETWORKS = Object.freeze([
   'zedo.com',
   'zemanta.com',
   '360yield.com',
+  // Social ad servers. These are listed as individual hosts rather than their
+  // parent domains on purpose: blocking facebook.com, twitter.com, pinterest.com
+  // or tiktok.com would break the site itself, and the people who block ads
+  // still expect the site to work.
+  'an.facebook.com',
+  'pixel.facebook.com',
+  'ads-api.twitter.com',
+  'static.ads-twitter.com',
+  'ads.linkedin.com',
+  'ads.pinterest.com',
+  'ads.tiktok.com',
+  'ads-api.tiktok.com',
+  'ads-sg.tiktok.com',
+  'business-api.tiktok.com',
+  'ads.youtube.com',
+  // Ad infrastructure on shared hosts. Also listed individually, because
+  // blocking s3.amazonaws.com or adcolony.com wholesale would take down
+  // unrelated services and, for Amazon, most of the internet.
+  'adtago.s3.amazonaws.com',
+  'advice-ads.s3.amazonaws.com',
+  'analytics.s3.amazonaws.com',
+  'analyticsengine.s3.amazonaws.com',
+  'adcolony.com',
 ]);
 
 // Analytics, tag managers, and audience platforms. Blocked by default but
@@ -96,6 +119,23 @@ const ANALYTICS_HOSTS = Object.freeze([
   'simpli.fi',
   'tealiumiq.com',
   'trackjs.com',
+  // Event and impression endpoints. Individually listed, not by parent domain:
+  // redditmedia.com serves Reddit's images as well as its event calls, and
+  // pinterest.com is a site people use.
+  'events.reddit.com',
+  'events.redditmedia.com',
+  'analytics.pointdrive.linkedin.com',
+  'log.pinterest.com',
+  'trk.pinterest.com',
+  'analytics-sg.tiktok.com',
+  'log.byteoversea.com',
+  // Product analytics and outbound click tracking. Freshmarketer is Freshworks'
+  // analytics product and serves Microsoft Clarity under its own domain, which
+  // is why clarity.ms is a separate entry in the strict list and Freshmarketer's
+  // own Clarity host is covered by the rule here. Session replay is not in this
+  // tier at all: see the note on mouseflow.com in the strict list.
+  'freshmarketer.com',
+  'click.googleanalytics.com',
 ]);
 
 // Opt-in extras. These are more likely to affect site functionality, so they
@@ -115,11 +155,73 @@ const STRICT_HOSTS = Object.freeze([
   'kount.com',
   'logrocket.com',
   'mixpanel.com',
+  // Session replay. Unlike an ad server, this records the session itself:
+  // movement, clicks, and text typed into forms. It is the most privacy
+  // sensitive host in the project and it is still opt-in, because a site owner
+  // can gate content behind a replay-driven flow, and whether to accept that
+  // trade is the user's call rather than a default worth imposing.
   'mouseflow.com',
   'sc-static.net',
   'sentry.io',
   'ads-twitter.com',
 ]);
+
+// Ad scripts served from the site's own origin. Most ad blocking is about remote
+// hosts, but a large share of ad code is first party: the script sits on the
+// site's own CDN and only the request path gives it away.
+//
+// The leading slash on every rule is doing the real work. A rule of "ads.js"
+// matched as a plain substring would also block downloads.js, uploads.js,
+// leads.js, threads.js, heads.js and roads.js, which would break download
+// buttons, upload widgets and thread views across the web. Anchoring to a path
+// separator means a rule only matches a whole path segment, so /js/ads.js is
+// caught and /js/downloads.js is not.
+const STATIC_AD_FILES = Object.freeze([
+  '/ads.js',
+  '/ad.js',
+  '/adsbygoogle.js',
+  '/pagead.js',
+  '/pagead2.js',
+  '/adsense.js',
+  '/adcode.js',
+  '/advertising.js',
+  '/adframe-rotator.js',
+]);
+
+// Directories that exist to hold ad assets. These are matched only for
+// resource types that can never be a page a person meant to visit, so a site
+// with a legitimate /ads/ content directory keeps working.
+const STATIC_AD_DIRECTORIES = Object.freeze([
+  '/static/ads/',
+  '/static/ad/',
+  '/adserver/',
+  '/adserver2/',
+  '/adframe/',
+  '/ad-assets/',
+  '/ads/serve/',
+  '/ad-frames/',
+  '/advertising/',
+]);
+
+// mainFrame is excluded everywhere: a navigable path is never assumed to be an
+// ad on the strength of its name alone.
+const STATIC_PATH_TYPES = Object.freeze(['script', 'image', 'other', 'xmlhttprequest', 'subdocument']);
+
+function matchesStaticAdPath(pathname, resourceType) {
+  const value = String(pathname || '').toLowerCase();
+  if (!value || !value.startsWith('/')) return false;
+  // Query strings and fragments are not part of the path, so the caller passes
+  // URL.pathname. A rule matches a whole segment because every rule starts with
+  // a separator.
+  for (const file of STATIC_AD_FILES) {
+    if (value.includes(file)) return true;
+  }
+  if (!STATIC_PATH_TYPES.includes(String(resourceType || ''))) return false;
+  for (const directory of STATIC_AD_DIRECTORIES) {
+    if (value.includes(directory)) return true;
+  }
+  return false;
+}
 
 const FILTER_RESOURCE_TYPES = Object.freeze([
   'script',
@@ -228,8 +330,19 @@ function patternMatches(hostname, rawUrl, pattern) {
   if (!value) return false;
   // ||domain^ anchors to a hostname boundary.
   if (value.startsWith('||')) {
-    const domain = value.slice(2).replace(/\^.*$/, '');
-    if (hostMatches(hostname, domain)) return true;
+    const rest = value.slice(2).replace(/\^.*$/, '');
+    const slash = rest.indexOf('/');
+    if (slash === -1) {
+      if (hostMatches(hostname, rest)) return true;
+    } else {
+      // ||example.com/ads.js names a host and a path. Without this split the
+      // path would be compared against the hostname, the rule could never
+      // match, and a user whose site breaks would have no way to exempt the one
+      // file that is causing it.
+      const domain = rest.slice(0, slash);
+      const path = rest.slice(slash);
+      if (hostMatches(hostname, domain) && String(rawUrl).toLowerCase().includes(path.toLowerCase())) return true;
+    }
   }
   // A bare hostname rule such as example.com or example.com^.
   if (/^[a-z0-9.-]+\^?$/i.test(value)) return hostMatches(hostname, value.replace(/\^$/, ''));
@@ -245,7 +358,7 @@ class AdBlockManager {
     this.browserSession = browserSession;
     this.installed = false;
     this.settings = this.readSettings();
-    this.stats = { blocked: 0, byHost: new Map() };
+    this.stats = { blocked: 0, byHost: new Map(), firstParty: 0 };
     this.cache = this.compile();
   }
 
@@ -289,6 +402,8 @@ class AdBlockManager {
     return {
       ...settings,
       blockedRequests: this.stats.blocked,
+      // Ad scripts served by the page's own server, blocked on the path.
+      firstPartyBlocked: this.stats.firstParty,
       topBlockedHosts: [...this.stats.byHost.entries()]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 6)
@@ -303,8 +418,16 @@ class AdBlockManager {
     return this.status();
   }
 
-  recordBlock(hostname) {
+  recordBlock(hostname, kind = 'host') {
     this.stats.blocked += 1;
+    // A first-party ad script is counted separately and kept out of the host
+    // list. Listing the page's own domain as a blocked tracker would read as
+    // "this site is known bad", which is both wrong and alarming, and it would
+    // bury the real third-party trackers that panel exists to show.
+    if (kind === 'path') {
+      this.stats.firstParty += 1;
+      return;
+    }
     this.stats.byHost.set(hostname, (this.stats.byHost.get(hostname) || 0) + 1);
     if (this.stats.byHost.size > MAX_TRACKED_HOSTS) {
       const oldest = this.stats.byHost.keys().next().value;
@@ -313,7 +436,7 @@ class AdBlockManager {
   }
 
   resetStats() {
-    this.stats = { blocked: 0, byHost: new Map() };
+    this.stats = { blocked: 0, byHost: new Map(), firstParty: 0 };
     return this.status();
   }
 
@@ -352,6 +475,11 @@ class AdBlockManager {
 
     const context = { ...details, hostname };
     if (this.matchesCompiled(this.cache.allow, hostname, rawUrl, context)) return false;
+    // First-party ad assets, matched on the path rather than the host.
+    if (matchesStaticAdPath(parsed.pathname, details.resourceType)) {
+      this.recordBlock(hostname, 'path');
+      return true;
+    }
     if (this.matchesCompiled(this.cache.block, hostname, rawUrl, context)) {
       this.recordBlock(hostname);
       return true;
@@ -378,10 +506,13 @@ module.exports = {
   AD_NETWORKS,
   ANALYTICS_HOSTS,
   STRICT_HOSTS,
+  STATIC_AD_DIRECTORIES,
+  STATIC_AD_FILES,
   DEFAULT_HOSTS: AD_NETWORKS,
   FILTER_RESOURCE_TYPES,
   compileFilters,
   hostMatches,
+  matchesStaticAdPath,
   normalizeHost,
   patternMatches,
 };

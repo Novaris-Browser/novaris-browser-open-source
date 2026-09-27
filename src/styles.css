@@ -571,6 +571,7 @@ kbd { display: inline-grid; place-items: center; min-width: 17px; height: 18px; 
 .adblock-top-hosts { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
 .adblock-top-hosts span { padding: 3px 7px; color: var(--text-faint); border: 1px solid var(--glass-border-soft); border-radius: 6px; background: var(--glass-soft); font-size: 7px; }
 .adblock-top-hosts code { color: var(--text-soft); font-family: 'DM Mono', monospace; }
+.adblock-top-hosts .adblock-first-party-note { border-style: dashed; }
 .adblock-filters { margin-bottom: 12px; padding: 10px; border: 1px solid var(--glass-border-soft); border-radius: 10px; background: var(--glass-soft); }
 .adblock-filters textarea { width: 100%; min-height: 66px; resize: vertical; padding: 7px; color: var(--text); border: 1px solid var(--glass-border); border-radius: 7px; outline: 0; background: var(--glass); font-family: 'DM Mono', monospace; font-size: 8px; line-height: 1.5; }
 .adblock-filters textarea:focus { border-color: var(--accent); }
