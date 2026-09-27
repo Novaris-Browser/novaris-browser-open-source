@@ -100,6 +100,54 @@
     </div>
   </div>
 
+  <!-- Before you install -->
+  <section class="section">
+    <div class="section-head reveal">
+      <h2>You may see a Windows warning. Here is why.</h2>
+      <p>
+        Windows may show a blue <em>Windows protected your PC</em> message when you
+        download Novaris. This is expected while Novaris is a new publisher, and it is
+        worth understanding rather than clicking through blindly.
+      </p>
+    </div>
+
+    <article class="card glass reveal">
+      <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M12 8v4M12 16h.01"/></svg></span> Why you are seeing it</h3>
+      <p>
+        Windows asks a service called SmartScreen whether a file has a known origin. Until
+        Novaris has a long download history behind it, that answer is "no", so Windows
+        warns you. The warning is SmartScreen working correctly on a file it cannot yet
+        vouch for. It is not a report that Novaris is malicious.
+      </p>
+      <p>
+        The real fix is a code-signing certificate, which puts a recognised publisher name
+        on the file. Novaris is working towards one. Until then, the honest way to tell
+        whether the file you downloaded is the file we published is to check the hash
+        below.
+      </p>
+    </article>
+
+    <article class="card glass reveal" style="margin-top:18px">
+      <h3><span class="card-icon" aria-hidden="true">âœ“</span> Check the file is really ours</h3>
+      <p>
+        This does not need to be trusted on our word. The published hash comes from the
+        update feed, and the command below reads the file you actually downloaded. If the
+        two strings match, you have the file we published.
+      </p>
+      <div class="hash" style="margin-top:12px">
+        <code>(Get-FileHash ".\Novaris-Browser-0.7.5-Setup.exe" -Algorithm SHA512).Hash</code>
+        <button class="btn btn-sm" type="button" data-copy-code>Copy</button>
+      </div>
+      <p style="margin-top:12px">
+        <strong>Do not</strong> download from a third-party mirror, an "official download"
+        button on someone else's site, or a file-sharing link. A mirror can serve you
+        something entirely different, and no hash check will help if you never check it.
+        Download only from this page, over HTTPS, and confirm the address bar shows
+        <code>updates.yladevs.com</code>.
+      </p>
+    </article>
+  </section>
+
   <!-- Verify -->
   <section class="section">
     <div class="section-head reveal">
@@ -182,7 +230,7 @@
       <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
       <p style="margin-top:6px">
         This website uses advertising cookies, with your consent.
-        <a href="cookies.html">Cookie policy</a> · <a href="why-ads.html">Why we show ads</a> ·
+        <a href="cookies.html">Cookie policy</a> ï¿½ <a href="why-ads.html">Why we show ads</a> ï¿½
         <button type="button" data-consent-reset class="linklike">Change your choice</button>
       </p>
     </div>

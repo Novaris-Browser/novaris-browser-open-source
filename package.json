@@ -65,7 +65,15 @@
           ]
         }
       ],
-      "artifactName": "Novaris-Browser-${version}-Setup.${ext}"
+      "artifactName": "Novaris-Browser-${version}-Setup.${ext}",
+      "signingHashAlgorithms": [
+        "sha256",
+        "sha384",
+        "sha512"
+      ],
+      "rfc3161TimeStampServer": "http://timestamp.digicert.com",
+      "timeStampServerName": "DigiCert",
+      "verifyUpdateCodeSignature": true
     },
     "protocols": [
       {
