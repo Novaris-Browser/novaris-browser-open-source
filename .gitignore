@@ -1,0 +1,47 @@
+# Build output
+node_modules/
+dist/
+release/
+.vite/
+*.tsbuildinfo
+
+# Local environments and secrets. Nothing in this project needs a committed
+# key, and the vault and profile are per-machine, so these must never be added.
+.env
+.env.*
+*.pem
+*.pfx
+*.p12
+*.key
+*.jks
+*.keystore
+novaris-data.json
+novaris-vault.bin
+novaris-data.json.*
+novaris-vault.bin.*
+
+# Editor and OS noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and diagnostics
+*.log
+npm-debug.log*
+yarn-error.log*
+crashpad/
+*.dmp
+
+# Test and coverage output
+coverage/
+.nyc_output/
+
+# Local scratch
+tmp/
+.cache/
+*.bak
+*.orig
+*.rej

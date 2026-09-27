@@ -1,0 +1,118 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+function subscribe(channel, callback) {
+  if (typeof callback !== 'function') return () => {};
+  const listener = (_event, payload) => callback(payload);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
+
+const api = Object.freeze({
+  getBootstrap: () => ipcRenderer.invoke('bootstrap:get'),
+  engineCapabilities: () => ipcRenderer.invoke('engine:capabilities'),
+  updateSettings: (patch) => ipcRenderer.invoke('settings:update', patch),
+  privacyPosture: () => ipcRenderer.invoke('privacy:posture'),
+  gamingStatus: (payload) => ipcRenderer.invoke('gaming:status', payload),
+  trustCard: (payload) => ipcRenderer.invoke('trust:card', payload),
+  // Media bridge
+  installMediaBridge: (id) => ipcRenderer.invoke('media:install', { id }),
+  readMedia: (id) => ipcRenderer.invoke('media:read', { id }),
+  sendMediaCommand: (id, action, value) => ipcRenderer.invoke('media:command', { id, action, value }),
+  // Tab transfer, directly between devices on the same network
+  serveTabTransfer: (payload) => ipcRenderer.invoke('transfer:serve', payload),
+  tabTransferStatus: () => ipcRenderer.invoke('transfer:status'),
+  cancelTabTransfer: () => ipcRenderer.invoke('transfer:cancel'),
+  receiveTabTransfer: (payload) => ipcRenderer.invoke('transfer:receive', payload),
+  localAddresses: () => ipcRenderer.invoke('transfer:local-addresses'),
+  // Offline pages
+  canSaveOffline: (payload) => ipcRenderer.invoke('offline:can-save', payload),
+  saveOfflinePage: (payload) => ipcRenderer.invoke('offline:save', payload),
+  listOfflinePages: () => ipcRenderer.invoke('offline:list'),
+  removeOfflinePage: (payload) => ipcRenderer.invoke('offline:remove', payload),
+  openPrivateWindow: (url) => ipcRenderer.invoke('window:open-private', { url }),
+  chooseDownloadDirectory: () => ipcRenderer.invoke('settings:choose-download-directory'),
+  makeDefaultBrowser: () => ipcRenderer.invoke('app:make-default-browser'),
+  setTabPerformance: (payload) => ipcRenderer.invoke('performance:set-tab', payload),
+  extractReader: (webContentsId) => ipcRenderer.invoke('reader:extract', webContentsId),
+
+  importBookmarks: () => ipcRenderer.invoke('bookmarks:import-html'),
+  toggleBookmark: (bookmark) => ipcRenderer.invoke('bookmarks:toggle', bookmark),
+  removeBookmark: (id) => ipcRenderer.invoke('bookmarks:remove', id),
+  recordHistory: (visit) => ipcRenderer.invoke('history:record', visit),
+  clearHistory: () => ipcRenderer.invoke('history:clear'),
+  toggleReadingList: (item) => ipcRenderer.invoke('reading-list:toggle', item),
+
+  clearDownloads: () => ipcRenderer.invoke('downloads:clear'),
+  pauseDownload: (id) => ipcRenderer.invoke('downloads:pause', id),
+  resumeDownload: (id) => ipcRenderer.invoke('downloads:resume', id),
+  cancelDownload: (id) => ipcRenderer.invoke('downloads:cancel', id),
+  retryDownload: (id) => ipcRenderer.invoke('downloads:retry', id),
+  openDownload: (id) => ipcRenderer.invoke('downloads:open', id),
+  showDownload: (id) => ipcRenderer.invoke('downloads:show', id),
+  openDownloadsFolder: () => ipcRenderer.invoke('downloads:open-folder'),
+
+  addClosedTab: (tab) => ipcRenderer.invoke('tabs:add-closed', tab),
+  consumeClosedTab: () => ipcRenderer.invoke('tabs:consume-closed'),
+  saveSession: (session) => ipcRenderer.invoke('session:save', session),
+  setSitePermission: (origin, permission, value) => ipcRenderer.invoke('site-permissions:set', origin, permission, value),
+  resetSitePermission: (origin) => ipcRenderer.invoke('site-permissions:reset', origin),
+  setTabGroups: (list) => ipcRenderer.invoke('tab-groups:set', list),
+  setWorkspaces: (list) => ipcRenderer.invoke('workspaces:set', list),
+
+  clearBrowsingData: (options) => ipcRenderer.invoke('privacy:clear-browsing-data', options),
+  vaultStatus: () => ipcRenderer.invoke('vault:status'),
+  vaultList: () => ipcRenderer.invoke('vault:list'),
+  vaultSave: (credential) => ipcRenderer.invoke('vault:save', credential),
+  vaultUpdate: (id, credential) => ipcRenderer.invoke('vault:update', id, credential),
+  vaultRemove: (id) => ipcRenderer.invoke('vault:remove', id),
+  vaultCopySecret: (id, field) => ipcRenderer.invoke('vault:copy-secret', id, field),
+  vaultFill: (id, webContentsId) => ipcRenderer.invoke('vault:fill', id, webContentsId),
+  scanCredentialPage: (webContentsId) => ipcRenderer.invoke('credential:scan', webContentsId),
+  vaultSetMaster: (password) => ipcRenderer.invoke('vault:set-master', password),
+  vaultSetupMaster: (password) => ipcRenderer.invoke('vault:setup-master', password),
+  vaultChangeMaster: (currentPassword, newPassword) => ipcRenderer.invoke('vault:change-master', currentPassword, newPassword),
+  vaultDisableMaster: (password) => ipcRenderer.invoke('vault:disable-master', password),
+  vaultUnlock: (password) => ipcRenderer.invoke('vault:unlock', password),
+  vaultLock: () => ipcRenderer.invoke('vault:lock'),
+  vaultExport: () => ipcRenderer.invoke('vault:export'),
+  vaultImport: () => ipcRenderer.invoke('vault:import'),
+  vaultImportCsv: () => ipcRenderer.invoke('vault:import-csv'),
+  listExtensions: () => ipcRenderer.invoke('extensions:list'),
+  chooseExtension: () => ipcRenderer.invoke('extensions:choose'),
+  openExtensionStore: (url) => ipcRenderer.invoke('extensions:open-store', url),
+  importExtensionPackage: (storeUrl) => ipcRenderer.invoke('extensions:import-package', storeUrl),
+  toggleExtension: (id, enabled) => ipcRenderer.invoke('extensions:toggle', id, enabled),
+  removeExtension: (id) => ipcRenderer.invoke('extensions:remove', id),
+  openExtensionAction: (id) => ipcRenderer.invoke('extensions:open-action', id),
+  restoreBuiltinExtension: () => ipcRenderer.invoke('extensions:restore-builtin'),
+  adblockStatus: () => ipcRenderer.invoke('adblock:status'),
+  updateAdblock: (patch) => ipcRenderer.invoke('adblock:update', patch),
+  resetAdblockStats: () => ipcRenderer.invoke('adblock:reset-stats'),
+  refreshAdblock: () => ipcRenderer.invoke('adblock:refresh'),
+  storageOverview: () => ipcRenderer.invoke('storage:overview'),
+  clearSiteStorage: (origin) => ipcRenderer.invoke('storage:clear-site', origin),
+  updateStatus: () => ipcRenderer.invoke('update:status'),
+  checkForUpdates: () => ipcRenderer.invoke('update:check'),
+  downloadUpdate: () => ipcRenderer.invoke('update:download'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+  updateSummary: () => ipcRenderer.invoke('update:summary'),
+  onUpdateState: (callback) => subscribe('update:state', callback),
+  resetProfile: (reason) => ipcRenderer.invoke('profile:reset', { reason }),
+  allowUnsafeSite: (url) => ipcRenderer.invoke('site-safety:allow', url),
+  classifySite: (url) => ipcRenderer.invoke('site-safety:classify', url),
+  openExternal: (url) => ipcRenderer.invoke('app:open-external', url),
+
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggle-maximize'),
+  toggleFullscreenWindow: () => ipcRenderer.invoke('window:toggle-fullscreen'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
+
+  onDownloadsChanged: (callback) => subscribe('downloads:changed', callback),
+  onSiteBlocked: (callback) => subscribe('site:blocked', callback),
+  onOpenLink: (callback) => subscribe('browser:open-link', callback),
+  onProtocolUrl: (callback) => subscribe('protocol:url', callback),
+  onWindowStateChanged: (callback) => subscribe('window:state', callback),
+  onShortcut: (callback) => subscribe('shortcut', callback),
+});
+
+contextBridge.exposeInMainWorld('novaris', api);

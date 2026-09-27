@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About the Project | Novaris Browser</title>
+<meta name="description" content="Why Novaris Browser exists, what it is built on, what the project will not do, and how the work is tested before anything is published.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#04061c">
+<link rel="canonical" href="https://novarisbrowser.example/about.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="About the Project | Novaris Browser">
+<meta property="og:description" content="Why this browser exists, what it is built on, and what it will not do.">
+<meta property="og:url" content="https://novarisbrowser.example/about.html">
+<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "url": "https://novarisbrowser.example/about.html",
+  "inLanguage": "en-GB",
+  "isPartOf": { "@id": "https://novarisbrowser.example/#website" }
+}
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="24" height="24"><span>NOVARIS</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="security.html">Security</a>
+      <a href="why-ads.html">Why ads</a>
+      <a href="donate.html">Donate</a>
+      <a href="faq.html">FAQ</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell section">
+  <div class="prose">
+    <h1>About this project</h1>
+    <p class="legal-updated">Last updated: 27 September 2026</p>
+
+    <p>
+      Novaris is an independent browser for Windows. It is free, has no accounts, and does
+      not collect anything about you. Those three properties are not marketing
+      positioning; they are consequences of a specific technical decision, and everything
+      else on this site follows from them.
+    </p>
+
+    <h2>Why it exists</h2>
+    <p>
+      Modern browsers have drifted towards being platforms that happen to render web
+      pages. The default is now an account, a sync service, a store, a wallet, a news
+      feed, a VPN upsell, and a steady stream of sponsored results, all of which require
+      the vendor to know who you are.
+    </p>
+    <p>
+      There is a version of a browser that is just a browser: it renders pages, it keeps
+      your passwords, it blocks adverts because that is what a browser should do, and it
+      has no account for you to be tracked through because it never needed one. Novaris is
+      that, built properly rather than assembled from parts.
+    </p>
+
+    <h2>What it is built on</h2>
+    <p>
+      Chromium, the open-source engine behind Chrome, Microsoft Edge and most other modern
+      browsers. Writing a rendering engine from scratch would be a decade of work and would
+      be worse at rendering the web than the one Google maintains.
+    </p>
+    <p>
+      Novaris wraps it in Electron, which is the layer that lets an ordinary web
+      application drive a Chromium instance. The consequence is specific and worth stating:
+      some things Chrome can do, Novaris cannot, because they belong to Chrome's
+      interface rather than to the engine. The most visible is installing extensions from
+      the Chrome Web Store, which depends on a private integration Google offers only to
+      browsers with its own distribution. We do not pretend to have it.
+    </p>
+    <p>
+      Everything else — blocking, the vault, scam detection, tabs, privacy modes — is ours,
+      and none of it is a setting exposed by Chromium that we simply turned on.
+    </p>
+
+    <h2>What it will not do</h2>
+    <ul>
+      <li><strong>No accounts.</strong> There is nowhere for your data to be uploaded to, which is the single most valuable property this project has.</li>
+      <li><strong>No telemetry.</strong> Not a switch to disable, because the code was never written.</li>
+      <li><strong>No default-on encryption of your history.</strong> If you want your history unreadable to us, keep it off your disk where it belongs.</li>
+      <li><strong>No selling your attention inside the browser.</strong> The application has no advertising, ever. The website does, and explains it.</li>
+      <li><strong>No "continue without unlocking".</strong> A hard lock is the only kind that means anything.</li>
+    </ul>
+
+    <h2>How things get tested</h2>
+    <p>
+      A browser feature that appears to work and quietly does not is the worst possible
+      outcome, and two of the bugs we found would have shipped that way. So the rule is
+      that claims are verified against the packaged build, not against a developer's copy.
+    </p>
+    <ul>
+      <li>Unit tests cover the parts that can be isolated, including cryptographic correctness and the parsers that decide what is a phishing address.</li>
+      <li>End-to-end tests drive the real packaged application through a debugging protocol: opening private windows, loading a playing video, transferring a tab over a real socket, checking that a credential is refused on the wrong host.</li>
+      <li>Every release is verified by recomputing the SHA-512 of the installer and comparing it with the published manifest, because an update that cannot be verified is an update that cannot be trusted.</li>
+    </ul>
+    <p>
+      When something turns out not to work, it gets removed and written up rather than
+      shipped behind a label. The <a href="security.html">security page</a> describes two
+      features we built, measured, found did nothing, and deleted, including one security
+      switch that was actively misleading.
+    </p>
+
+    <h2>Where it is going</h2>
+    <p>
+      Features that compound: a better tab system, more honest site information, and
+      continued work on the parts that are genuinely hard. Features we have decided
+      against are listed on the <a href="index.html#limits">limits page</a>, because a
+      project that only tracks towards its next feature will eventually ship something
+      dishonest to get there.
+    </p>
+    <p>
+      If you want to help and have a Windows machine, the most useful contribution costs
+      nothing: install it, use it for a week, and report what broke. Real usage finds
+      real bugs. If you would rather fund it, the <a href="donate.html">donation page</a>
+      explains exactly where the money goes.
+    </p>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
+      <p style="margin-top:6px">
+        This website uses advertising cookies, with your consent.
+        <a href="cookies.html">Cookie policy</a> · <a href="why-ads.html">Why we show ads</a> ·
+        <button type="button" data-consent-reset class="linklike">Change your choice</button>
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href="download.html">Download</a><a href="security.html">Security</a><a href="faq.html">FAQ</a>
+      <a href="donate.html">Donate</a><a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a><a href="terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google AdSense and its
+    partners will set cookies to measure ads and, where you allow it, personalise them. No advertising
+    script is loaded and no advertising cookie is set until you choose to allow it. Read the
+    <a href="cookies.html">cookie policy</a> and <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">Your choice is stored in this browser only, using local storage rather than a cookie, and is never sent anywhere.</p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>

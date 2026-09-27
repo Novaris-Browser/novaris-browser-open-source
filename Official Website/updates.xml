@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Release feed for the Novaris Browser website.
+
+  Newest first. This is linked from the head of every page as an alternate, and
+  listed in the sitemap, so a subscriber can follow releases without visiting
+  the site. Each entry should match a published installer and its hash.
+-->
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Novaris Browser — updates</title>
+    <link>https://novarisbrowser.example/updates.xml</link>
+    <description>Release notes for Novaris Browser, a secure browser for Windows.</description>
+    <language>en-GB</language>
+    <atom:link href="https://novarisbrowser.example/updates.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>0.7.5 — Tab transfer, side panel, media controls, saved pages</title>
+      <link>https://novarisbrowser.example/index.html#updates</link>
+      <guid isPermaLink="false">novaris-0.7.5</guid>
+      <pubDate>Sun, 27 Sep 2026 00:00:00 +0000</pubDate>
+      <description><![CDATA[
+        <p><strong>Tab transfer, device to device.</strong> Send a tab to another device on your
+        local network with no server, no account, and nothing hosted anywhere. The tab is
+        encrypted on the sending PC with AES-256-GCM before it moves, a 100-bit pairing code
+        authorises the transfer, and only local addresses can be reached.</p>
+        <p><strong>Side panel apps.</strong> Discord, YouTube, Spotify, Canvas, Mail and a Notes
+        scratchpad stay open beside your tabs. Only the app you are looking at is loaded.</p>
+        <p><strong>Media controls and picture in picture.</strong> A control bar for whatever the
+        page is playing, with picture-in-picture that works from any site.</p>
+        <p><strong>Saved pages.</strong> Keep an article to read offline, in a sandbox with no
+        script execution, carrying the address and time it was taken.</p>
+        <p><strong>Vertical tabs and workspaces.</strong> Tabs down the left, grouped, with drag to
+        reorder, search across all open tabs, hover preview, and a right-click menu.</p>
+        <p><strong>Privacy.</strong> Local phishing detection, the Website Trust Card, private
+        windows, and Gaming Mode.</p>
+      ]]></description>
+    </item>
+
+  </channel>
+</rss>

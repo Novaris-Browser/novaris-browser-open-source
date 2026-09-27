@@ -1,0 +1,53 @@
+# robots.txt — Novaris Browser
+#
+# Everything public is allowed to be crawled. The advertising crawlers are named
+# explicitly because ad platforms have historically used blocked crawlers as a
+# signal of a low-quality site, and because a blocked adsbot can cost revenue
+# without anyone noticing why.
+#
+# Change the Sitemap: line to the real domain before deploying.
+
+User-agent: *
+Allow: /
+
+# Block the installer binaries from being indexed. They are executables, not
+# documents, and a search result linking straight to a 109 MB download is not a
+# useful outcome for anybody.
+Disallow: /release/
+Disallow: /*.exe$
+Disallow: /*.blockmap$
+
+# Nothing here is private, but the config file is a build detail and has no
+# business in an index.
+Disallow: /js/config.js
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Google advertising and review crawlers.
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+User-agent: Google-InspectionTool
+Allow: /
+
+User-agent: Google-Read-Aloud
+Allow: /
+
+User-agent: Storebot-Google
+Allow: /
+
+# The Chrome Web Store listing crawler, if the extension is ever published.
+User-agent: Chrome-Lighthouse
+Allow: /
+
+Sitemap: https://novarisbrowser.example/sitemap.xml

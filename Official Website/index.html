@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Novaris Browser — Private, Secure Windows Browser | Download Free</title>
+<meta name="description" content="A free Windows browser that blocks ads before they load, stops reported scam sites, and keeps passwords in an encrypted vault on your own PC.">
+<meta name="keywords" content="private browser, secure browser, Windows browser, ad blocker browser, scam blocking browser, encrypted password vault, Chromium browser, browser for Windows 11">
+<meta name="author" content="Novaris">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="theme-color" content="#04061c">
+<meta name="color-scheme" content="dark">
+<meta name="rating" content="general">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="canonical" href="https://novarisbrowser.example/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="Novaris Browser — a calm, secure browser for Windows">
+<meta property="og:description" content="Ads blocked at the request, scam sites stopped before they load, and passwords sealed in a vault that never leaves your PC.">
+<meta property="og:url" content="https://novarisbrowser.example/">
+<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1080">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta property="og:locale" content="en_GB">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Novaris Browser — a calm, secure browser for Windows">
+<meta name="twitter:description" content="Ads blocked at the request, scam sites stopped, passwords sealed locally. Free download for Windows.">
+<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/logo.svg">
+<link rel="manifest" href="site.webmanifest">
+<link rel="alternate" type="application/rss+xml" title="Novaris Browser updates" href="updates.xml">
+<link rel="preload" as="image" href="assets/hero.svg">
+<link rel="stylesheet" href="css/styles.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://novarisbrowser.example/#organization",
+      "name": "Novaris Browser",
+      "url": "https://novarisbrowser.example/",
+      "logo": "https://novarisbrowser.example/assets/logo.svg",
+      "slogan": "A calm, secure browser for Windows.",
+      "description": "An independent Windows browser built on Chromium that blocks advertising at the request, stops reported scam sites, and keeps credentials in a vault encrypted on the user's own PC."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://novarisbrowser.example/#website",
+      "url": "https://novarisbrowser.example/",
+      "name": "Novaris Browser",
+      "publisher": { "@id": "https://novarisbrowser.example/#organization" },
+      "inLanguage": "en-GB"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Novaris Browser",
+      "applicationCategory": "BrowserApplication",
+      "applicationSubCategory": "Security",
+      "operatingSystem": "Windows 10, Windows 11",
+      "softwareVersion": "0.7.5",
+      "description": "A Windows browser that blocks ads and reported scam sites, stores passwords in an AES-256-GCM vault with Argon2id key derivation, and runs vertical tabs with workspaces.",
+      "url": "https://novarisbrowser.example/",
+      "downloadUrl": "https://novarisbrowser.example/download.html",
+      "softwareHelp": "https://novarisbrowser.example/faq.html",
+      "license": "https://novarisbrowser.example/terms.html",
+      "privacyPolicy": "https://novarisbrowser.example/privacy.html",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "aggregateRating": null,
+      "featureList": [
+        "Blocks advertising before the request leaves the device",
+        "Blocks reported scam and malware hosts before they load",
+        "AES-256-GCM vault with Argon2id key derivation",
+        "Domain-locked password autofill",
+        "Website Trust Card with local phishing detection",
+        "Vertical tabs with workspaces and tab groups",
+        "Private windows with non-persistent storage",
+        "Gaming Mode that unloads inactive tabs",
+        "Device-to-device encrypted tab transfer"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Novaris really Chrome, or a rebrand of it?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Novaris uses Chromium, the same rendering engine Chrome is built on. What it changes is everything around the engine: which network requests are allowed, what is stored on disk, and what a website is told about you. Chromium is the honest description; claiming to be Chrome would not be." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Novaris send anything to Google?",
+          "acceptedAnswer": { "@type": "Answer", "text": "The application does not. A Chromium network log recorded over a real session visiting three sites produced 39 requests to exactly three hosts, all of them page content, with no Safe Browsing pings, component updater, variations service, autofill upload or telemetry. This website is separate and does show advertising, which is explained on the page about why we show ads." }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens to my passwords?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Importing is always something you start yourself, and you review what comes across. Novaris never reads a Chrome or Edge password database on its own. Once saved, each login is sealed with AES-256-GCM under a key derived from your browser password using Argon2id, and is only ever filled back into the site it was saved for." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there an account or a subscription?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No account, and nothing to pay. There is no server component, which is also why there is nothing to sign in to." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I install Chrome extensions?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Manifest V2 extensions work. Most current extensions are Manifest V3, whose background logic runs in a service worker that Electron does not execute. Novaris detects that from the manifest, warns you before installing, and labels it afterwards, so you are never left with an extension that appears installed and does nothing." }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the limits?",
+          "acceptedAnswer": { "@type": "Answer", "text": "A site that configures a STUN server can obtain your public IP address through WebRTC with no permission prompt, and Chromium's own IP handling switches do not prevent it. Chrome Web Store extension installs are not available to any third-party browser. Passkeys can be created but not yet used, because the account chooser is not drawn. These are stated in full on the limits section." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html">
+      <img src="assets/logo.svg" alt="" width="24" height="24">
+      <span>NOVARIS</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18"/>
+      </svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="#features">Features</a>
+      <a href="security.html">Security</a>
+      <a href="#updates">Updates</a>
+      <a href="#limits">Limits</a>
+      <a href="faq.html">FAQ</a>
+      <a href="why-ads.html">Why ads</a>
+      <a href="donate.html">Donate</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Hero -->
+  <section class="shell hero">
+    <img class="hero-mark" src="assets/logo.svg" alt="" width="92" height="92">
+    <span class="hero-eyebrow"><span class="dot"></span> Version <span data-version>0.7.5</span> for Windows</span>
+    <h1>
+      <span class="wordmark">NOVARIS</span>
+      <span class="sub">BROWSER</span>
+    </h1>
+    <p class="hero-lede">
+      A Windows browser built on the same engine as Chrome, with the noise taken out:
+      advertising blocked at the request, reported scam sites stopped before they load,
+      and passwords sealed in a vault that never leaves your PC.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="download.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download for Windows
+      </a>
+      <a class="btn btn-lg" href="#security">How it protects you</a>
+    </div>
+    <p class="hero-note">Windows 10 and 11 · 64-bit · 109 MB · free, no account</p>
+  </section>
+
+  <!-- The download invitation, in the familiar shape -->
+  <section class="shell">
+    <div class="ready glass reveal">
+      <div class="ready-inner">
+        <div class="ready-icon" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z"/>
+          </svg>
+        </div>
+        <h2>Ready when you are</h2>
+        <p>
+          Novaris installs like any other Windows app and starts clean. Nothing is uploaded
+          during setup, no account is created, and your existing passwords stay where they are
+          until you ask Novaris to import them.
+        </p>
+        <a class="btn btn-primary btn-lg" href="download.html">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download for Windows
+        </a>
+        <div class="facts">
+          <span class="fact"><span class="dot"></span> <b>Zero</b> Google endpoints</span>
+          <span class="fact"><span class="dot"></span> <b>AES-256-GCM</b> vault, Argon2id keys</span>
+          <span class="fact"><span class="dot"></span> <b>Chromium 152</b> engine</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="shell section" id="features">
+    <div class="section-head reveal">
+      <h2>Everything a browser should already be doing</h2>
+      <p>
+        Each of these was built and then tested against the packaged build, not against a
+        mock-up. Where something could not be done honestly, it is listed under
+        <a href="#limits">Limits</a> instead of being quietly left out.
+      </p>
+    </div>
+
+    <div class="grid">
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/></svg></span> Vertical tabs and workspaces</h3>
+        <p>Tabs down the left, grouped, and organised into workspaces that hold those groups. Drag to reorder, search every open tab at once, and hover for a preview before you switch.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span> Ads blocked at the request</h3>
+        <p>Blocking happens before the request leaves your PC, not by hiding things afterwards. Three levels, custom filters, and a live count of what was stopped and who was behind it.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></span> Scam sites stopped before they load</h3>
+        <p>Hosts reported as fraud or malware are blocked with the reason shown. A listed host is blocked exactly; the platform hosting it is never blocked by association.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span> A vault that stays on your PC</h3>
+        <p>Each login is sealed individually with AES-256-GCM under an Argon2id key, bound to the site it belongs to. A fill is refused on any other host, so a fake sign-in page cannot collect it.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/><circle cx="12" cy="12" r="3"/></svg></span> Website Trust Card</h3>
+        <p>One card per site: is the connection encrypted, what can it do, which extensions can read the page, and does the address imitate a brand you trust. Checked entirely on your device.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/><rect x="2" y="6" width="20" height="12" rx="4"/></svg></span> Gaming Mode</h3>
+        <p>Unloads every tab you are not looking at instead of merely hiding it, refuses notifications outright, and stops the spellchecker. The cost is stated in the interface, not discovered later.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Private windows</h3>
+        <p>A separate window on storage that is never written to disk, with its own randomly named partition so two private windows cannot see each other. Nothing survives closing it.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span> Tab transfer, device to device</h3>
+        <p>Send a tab to another device on your network with no server involved. Encrypted on the sending PC before it moves, authorised by a pairing code, and no copy kept afterwards.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M19 3v18M3 8h18M3 16h18"/></svg></span> Media controls and picture in picture</h3>
+        <p>A control bar for whatever the page is playing, with picture-in-picture that works from any site. The page stays in charge of its own state, so a playlist advancing by itself is followed.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 20V9"/></svg></span> A side panel for your apps</h3>
+        <p>Discord, YouTube, Spotify, Canvas and Mail stay open beside your tabs instead of taking one. Only the app you are looking at is loaded, so the rail costs a tab rather than eleven.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span> Saved pages for offline reading</h3>
+        <p>Keep an article to read on a plane. The capture is placed in a sandbox with no script execution and no same-origin access, and it carries the address and time it was taken.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg></span> Updates you can check yourself</h3>
+        <p>Every release is published with its size and a SHA-512 hash, and the app verifies the download before installing it. No forced updates, no background phone-home.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Mid-page advertising, loaded only after consent -->
+  <div class="shell">
+    <div class="ad-slot" data-ad-slot="homeMid">
+      <span class="ad-slot__label">Advertisement</span>
+      <div class="ad-slot__frame" data-ad-frame></div>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <section class="shell section" id="security">
+    <div class="section-head reveal">
+      <h2>What we measured, rather than what we claim</h2>
+      <p>
+        Most privacy pages list wins. These numbers come from running the packaged build and
+        watching what it actually did.
+      </p>
+    </div>
+
+    <div class="grid">
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">0</span> Google endpoints</h3>
+        <p>
+          A Chromium network log recorded over a session visiting three sites produced
+          39 requests to exactly 3 hosts — all page content. No Safe Browsing pings, no
+          component updater, no variations, no autofill upload, no telemetry.
+        </p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">152</span> The engine is Chrome's</h3>
+        <p>
+          Novaris renders every page with Chromium <span data-chrome>152</span> through
+          Electron <span data-electron>44.4.5</span>. It is the same engine, with
+          the Google services switched off around it.
+        </p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">✓</span> Cookies already partitioned</h3>
+        <p>
+          A cookie set on one origin was not sent when a second origin requested it.
+          That matches Chrome's default, and it is why the Trust Card can show you a
+          site is not quietly reading another site's session.
+        </p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">▣</span> The vault has no escape hatch</h3>
+        <p>
+          Once a browser password is set, it is a hard lock. There is no "continue without
+          unlocking". The only way past it destroys the vault rather than opening it.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Updates -->
+  <section class="shell section" id="updates">
+    <div class="section-head reveal">
+      <h2>Version <span data-notes-version>0.7.5</span></h2>
+      <p>
+        The status below is read from the live update feed when this page loads, so it
+        reflects the build that is actually published rather than one typed into a page.
+      </p>
+    </div>
+
+    <p class="notice glass reveal" data-mismatch hidden>
+      <span data-mismatch-text></span>
+    </p>
+
+    <article class="release glass reveal">
+      <div class="release-top">
+        <span class="badge" data-status>Checking the feed…</span>
+        <span class="badge" data-size>—</span>
+        <a class="btn btn-sm btn-primary" href="download.html">Download for Windows</a>
+      </div>
+
+      <div class="changes">
+        <div class="change-group">
+          <h3>Tab transfer, device to device</h3>
+          <ul>
+            <li>Send a tab to another device on your network with no server, no account, and nothing hosted anywhere.</li>
+            <li>Encrypted on the sending PC with AES-256-GCM before it moves, so nothing readable crosses the network.</li>
+            <li>A 100-bit pairing code authorises the transfer, compared in constant time, and stops working after ten minutes.</li>
+            <li>Only local network addresses can be reached, so Novaris cannot be used to make an outward connection.</li>
+          </ul>
+        </div>
+
+        <div class="change-group">
+          <h3>Side panel apps, media controls and saved pages</h3>
+          <ul>
+            <li>Discord, YouTube, Spotify, Canvas, Mail and a Notes scratchpad stay open beside your tabs.</li>
+            <li>Media controls for whatever the page is playing, with working picture-in-picture from any site.</li>
+            <li>Saved pages for offline reading, sandboxed so a capture cannot reach your credentials.</li>
+            <li>Picture-in-picture is driven by Novaris rather than the page, because a browser requires a real click.</li>
+          </ul>
+        </div>
+
+        <div class="change-group">
+          <h3>Vertical tabs and workspaces</h3>
+          <ul>
+            <li>Tabs down the left, grouped, organised into workspaces that hold those groups.</li>
+            <li>Drag to reorder or move between groups, search every open tab at once, hover for a preview.</li>
+            <li>Right-click to duplicate, mute, close, or move a tab to another group or workspace.</li>
+            <li>Deleting a group keeps its tabs. Deleting a workspace keeps its groups. Neither destroys work.</li>
+          </ul>
+        </div>
+
+        <div class="change-group">
+          <h3>Privacy and safety</h3>
+          <ul>
+            <li>Local phishing detection that checks whether an address is imitating a brand you trust, with the reasons shown.</li>
+            <li>The Website Trust Card: encryption, permissions, extensions with access, and advertising stopped, per site.</li>
+            <li>Private windows on storage that is never written to disk, with their own random partition each.</li>
+            <li>Gaming Mode unloads inactive tabs, refuses notifications, and stops the spellchecker.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Limits -->
+  <section class="shell section" id="limits">
+    <div class="section-head reveal">
+      <h2>What it cannot do</h2>
+      <p>
+        A privacy browser that only lists its wins is telling you half the story. These are
+        the limits we have measured and are not pretending to have solved.
+      </p>
+    </div>
+
+    <article class="limits glass reveal">
+      <h3>Known limits</h3>
+
+      <div class="limit-row">
+        <strong>Your public IP address can be disclosed by a website</strong>
+        <span>
+          A site that configures a STUN server can obtain your public address through
+          WebRTC, with no permission prompt. Chromium's own IP handling switches were tested
+          three different ways and do not prevent it. The real mitigations are routing your
+          traffic through an anonymising network, or an extension that removes WebRTC per
+          site. Novaris does not claim to stop this.
+        </span>
+      </div>
+
+      <div class="limit-row">
+        <strong>Chrome Web Store extensions do not install directly</strong>
+        <span>
+          Google exposes no public install API to third parties, so "Add to Chrome" cannot
+          be made to work honestly. Novaris detects Manifest V3 extensions, labels the ones
+          whose background logic will not run, and tells you why instead of letting them
+          install and quietly do nothing. Manifest V2 extensions work.
+        </span>
+      </div>
+
+      <div class="limit-row">
+        <strong>Passkeys can be created but not yet used</strong>
+        <span>
+          A website can register a passkey into Windows Hello through Novaris today, and
+          the platform authenticator is available. Signing in with one needs an account
+          chooser that Electron does not draw and offers no way for a browser to substitute.
+          That is an upstream gap, not a setting.
+        </span>
+      </div>
+
+      <div class="limit-row">
+        <strong>Phishing detection reads the address, not the reputation</strong>
+        <span>
+          It catches hostname impersonation, which is the large class of attacks. It is not
+          a reputation service, so a brand-new malicious domain with an unusual name can
+          still get through. Nothing you visit is sent anywhere to produce a verdict.
+        </span>
+      </div>
+
+      <div class="limit-row">
+        <strong>Tab transfer needs both devices on one network</strong>
+        <span>
+          Sending a tab to a device elsewhere while you are away from home is not something
+          Novaris can do, because that needs a server you would have to run.
+        </span>
+      </div>
+    </article>
+  </section>
+
+  <!-- FAQ -->
+  <section class="shell section" id="faq">
+    <div class="section-head reveal">
+      <h2>Common questions</h2>
+    </div>
+
+    <div class="faq">
+      <details class="glass reveal">
+        <summary>Is Novaris really Chrome, or a rebrand of it?</summary>
+        <p>
+          It uses the same rendering engine, Chromium, which is what Chrome is built on.
+          What Novaris changes is everything around it: which network requests are allowed,
+          what is stored and where, and what a website is told about you. Saying "it is
+          Chromium" is the honest description; claiming to be Chrome would not be.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Does it phone home to Google?</summary>
+        <p>
+          No. We measured it rather than trusting the configuration: a network log over a
+          real session showed no Google endpoint being contacted at all. The Trust Card in
+          Settings reports what was actually observed, and notes that it is produced on your
+          device.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>What happens to my passwords?</summary>
+        <p>
+          You choose whether to move them. Novaris never reads a Chrome or Edge password
+          database on its own; importing is a deliberate step, and you review what comes
+          across. Once saved, each login is sealed with AES-256-GCM under a key derived
+          from your browser password using Argon2id, and is only ever filled back into the
+          site it was saved for.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Is there an account or a subscription?</summary>
+        <p>
+          No account, and nothing to pay for. There is no server component, which is also
+          why there is nothing to log you in to.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Will it force an update on me?</summary>
+        <p>
+          It asks first, shows the download size, and only installs when you agree. Every
+          release publishes a SHA-512 hash and the app verifies the download before
+          installing it. Uninstalling removes your profile, so the next install is a clean
+          first run.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Can I use my Chrome or Edge extensions?</summary>
+        <p>
+          Manifest V2 extensions work. Most current extensions are Manifest V3, whose
+          background logic runs in a service worker that Electron does not execute. Novaris
+          detects that from the manifest, warns you before you install, and labels it
+          afterwards, so you are never left with an extension that appears installed and
+          does nothing.
+        </p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section class="shell section" id="get">
+    <div class="download glass reveal">
+      <div class="download-main">
+        <div>
+          <h2>Download for Windows</h2>
+          <p>Version <b data-version>0.7.5</b> · Windows 10 and 11, 64-bit · free, no account.</p>
+        </div>
+
+        <div class="download-meta">
+          <div class="meta"><span>Version</span><b data-version>0.7.5</b></div>
+          <div class="meta"><span>Size</span><b data-size>109 MB</b></div>
+          <div class="meta"><span>Platform</span><b>Windows 64-bit</b></div>
+          <div class="meta"><span>Price</span><b>Free</b></div>
+        </div>
+
+        <div>
+          <a class="btn btn-primary btn-lg" href="download.html">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download for Windows
+          </a>
+        </div>
+      </div>
+
+      <div class="ad-slot" data-ad-slot="homeFoot">
+        <span class="ad-slot__label">Advertisement</span>
+        <div class="ad-slot__frame" data-ad-frame></div>
+      </div>
+
+      <div class="hash">
+        <div style="flex:1 1 100%">
+          <span style="display:block;color:var(--ink-faint);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">SHA-512 of the installer</span>
+          <code data-hash>Run the app, or open the download page, to see the published hash.</code>
+        </div>
+        <button class="btn btn-sm" type="button" data-copy>Copy</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
+      <p style="margin-top:6px">
+        This website uses advertising cookies, with your consent.
+        <a href="cookies.html">Cookie policy</a> ·
+        <a href="why-ads.html">Why we show ads</a> ·
+        <button type="button" data-consent-reset class="linklike">Change your choice</button>
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href="download.html">Download</a>
+      <a href="security.html">Security</a>
+      <a href="#updates">Updates</a>
+      <a href="faq.html">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="donate.html">Donate</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a>
+      <a href="terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Consent banner. Shown until an answer is recorded, and never again until
+     the visitor changes their mind from the footer. -->
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google
+    AdSense and its partners will set cookies to measure ads and, where you allow it,
+    personalise them. No advertising script is loaded and no advertising cookie is set
+    until you choose to allow it. Read the
+    <a href="cookies.html">cookie policy</a> and
+    <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">
+    Your choice is stored in this browser only, using local storage rather than a cookie,
+    and is never sent anywhere.
+  </p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>

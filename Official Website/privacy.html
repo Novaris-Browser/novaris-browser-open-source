@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Statement | Novaris Browser</title>
+<meta name="description" content="How Novaris Browser handles data. What stays on your PC, what the application never sends anywhere, and what this website collects when you allow advertising.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#04061c">
+<link rel="canonical" href="https://novarisbrowser.example/privacy.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="Privacy Statement | Novaris Browser">
+<meta property="og:description" content="What stays on your PC, what the application never sends, and what this website collects with your consent.">
+<meta property="og:url" content="https://novarisbrowser.example/privacy.html">
+<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Privacy Statement",
+  "url": "https://novarisbrowser.example/privacy.html",
+  "inLanguage": "en-GB",
+  "isPartOf": { "@id": "https://novarisbrowser.example/#website" }
+}
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="24" height="24"><span>NOVARIS</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="security.html">Security</a>
+      <a href="why-ads.html">Why ads</a>
+      <a href="donate.html">Donate</a>
+      <a href="faq.html">FAQ</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell section">
+  <div class="prose">
+    <h1>Privacy Statement</h1>
+    <p class="legal-updated">Last updated: 27 September 2026</p>
+
+    <div class="toc glass reveal">
+      <strong>On this page</strong>
+      <a href="#two-things">The two things to keep apart</a>
+      <a href="#app">What the application does</a>
+      <a href="#vault">Your passwords</a>
+      <a href="#site">What this website collects</a>
+      <a href="#rights">Your rights</a>
+      <a href="#children">Children</a>
+      <a href="#contact">Contact and changes</a>
+    </div>
+
+    <h2 id="two-things">The two things to keep apart</h2>
+    <p>
+      This statement covers two separate systems, and conflating them is the most common
+      way a privacy policy misleads people. Read them apart.
+    </p>
+    <ul>
+      <li>
+        <strong>The Novaris application</strong> is the software you install. It has no
+        account system and no server to talk to. It does not send telemetry, and it does
+        not contact Google or any other analytics provider.
+      </li>
+      <li>
+        <strong>This website</strong> carries advertising so the project can be funded.
+        When you allow it, Google AdSense is loaded and may set cookies. That is a
+        deliberate, disclosed choice, made here and not in the application.
+      </li>
+    </ul>
+    <p>
+      So: if you install Novaris and browse with it, nothing you visit is reported to
+      anyone. If you read this website and allow advertising, the advertising partner
+      receives the information described below, and not before you say yes.
+    </p>
+
+    <h2 id="app">What the application does</h2>
+    <p>
+      Novaris stores everything it needs in your own Windows user profile folder. There
+      is no account, no sign-in, and no server component, which means there is nowhere
+      for your browsing to be uploaded to even in principle.
+    </p>
+
+    <h3>Browsing data</h3>
+    <p>
+      History, bookmarks, tab groups, workspaces and your reading list are written to
+      <code>%APPDATA%/Novaris Browser/novaris-data.json</code> on your own disk. This is
+      deleted when you uninstall, and it is never transmitted. If you turn on the
+      optional clear-on-exit setting, it is erased each time you close the browser
+      normally.
+    </p>
+
+    <h3>No telemetry, no analytics, no crash reporting</h3>
+    <p>
+      There is no event reporting of any kind. We did not build it, so there is no
+      switch to turn off, because there is nothing to turn off.
+    </p>
+    <p>
+      We have also verified this rather than assuming it. A Chromium network log recorded
+      over a real session, visiting three unrelated sites, produced 39 requests to
+      exactly three hosts — all of them page content. There were no Safe Browsing pings,
+      no component updater calls, no variations service requests, no autofill upload and
+      no telemetry. Chromium ships with those services disabled and Novaris does not
+      re-enable them.
+    </p>
+
+    <h3>Phishing checks and the Trust Card</h3>
+    <p>
+      The Website Trust Card scores a site's address to decide whether it imitates a
+      brand you trust. That analysis is performed entirely on your PC. No address is
+      submitted to us or to anyone else, and the check works with no internet connection
+      at all.
+    </p>
+
+    <h3>Ad blocking</h3>
+    <p>
+      Requests are blocked on your machine before they leave it. Because the request
+      never goes out, the destination never learns that you visited a page that
+      contained it.
+    </p>
+
+    <h3>Tab transfer</h3>
+    <p>
+      Moving a tab to another device connects the two devices directly on your local
+      network. There is no relay, no server and no cloud copy. The tab is encrypted on
+      the sending device before it moves, and the sending device deletes its copy once
+      the transfer budget is used.
+    </p>
+
+    <h3>Private windows</h3>
+    <p>
+      A private window uses a storage partition that is never written to disk and is
+      released when the window closes. Nothing about the session survives, and the
+      window has no access to the vault or to the profile's stored history.
+    </p>
+
+    <h2 id="vault">Your passwords</h2>
+    <p>
+      Novaris never reads a Chrome or Edge password database on its own. Importing is
+      something you start, and you can see exactly what will be imported before it is
+      saved.
+    </p>
+    <p>
+      Once saved, each credential is sealed individually using AES-256-GCM with a random
+      key and nonce of its own, under a key derived from your browser password using
+      Argon2id. The records are additionally protected by Windows' own encryption at rest.
+      A credential is only ever filled back into the exact host it was saved for, so a
+      lookalike sign-in page cannot collect it.
+    </p>
+    <p>
+      We cannot recover your vault. Nobody can, including us. If you lose your browser
+      password, the only supported route is to reset the vault, which destroys its
+      contents. This is deliberate: a support process that can reset a vault is a support
+      process that can open one.
+    </p>
+
+    <h2 id="site">What this website collects</h2>
+    <p>
+      This is the part that differs from the application, so it is set out in full.
+    </p>
+
+    <h3>If you decline advertising</h3>
+    <p>
+      No advertising script is requested from Google, no advertising cookie is set, and
+      no Google identifier is created for your browser. The site is static files and one
+      small script. Your choice is stored in your browser's local storage, which is not a
+      cookie and is never transmitted.
+    </p>
+
+    <h3>If you allow advertising</h3>
+    <p>
+      Google AdSense is loaded, and advertising and measurement cookies may be set,
+      including:
+    </p>
+    <ul>
+      <li><code>IDE</code>, <code>DSID</code>, <code>RUL</code> and <code>_gcl_au</code>, which are Google's advertising identifiers.</li>
+      <li><code>test_cookie</code>, used to check that your browser accepts cookies.</li>
+      <li>Google's <code>NID</code> and similar preference cookies.</li>
+      <li>Third-party cookies set by any other advertising partner in the network.</li>
+    </ul>
+    <p>
+      These are used to measure whether an advert is shown, to limit how often you see
+      the same one, and — where you have not opted out of personalisation — to select
+      advertising based on your activity. Google's use of advertising cookies enables it
+      and its partners to serve ads based on your visits to this and other sites.
+    </p>
+    <p>
+      You can opt out of personalised advertising at
+      <a href="https://adssettings.google.com/" rel="nofollow noopener" target="_blank">Google Ads Settings</a>,
+      and you can opt out of third-party vendor cookies at
+      <a href="https://www.aboutads.info/choices/" rel="nofollow noopener" target="_blank">aboutads.info</a>.
+      Do that before or after allowing ads here; both work.
+    </p>
+
+    <h3>Server logs</h3>
+    <p>
+      Whoever hosts this site keeps ordinary web server logs, which typically include the
+      requested address, the time, and a truncated network address. These are used to keep
+      the site working and are not combined with advertising profiles.
+    </p>
+
+    <h3>What we do not do on this website</h3>
+    <p>No first-party analytics. No advertising pixels in the application. No selling of anything.</p>
+
+    <h2 id="rights">Your rights</h2>
+    <p>
+      You can change your advertising choice at any time using the
+      <strong>Change your choice</strong> link in the footer, which clears your stored
+      decision and brings the banner back. Declining afterwards removes the advertising
+      script from the page as well as declining to add it.
+    </p>
+    <p>
+      Under UK and EU data protection law you have the right to access, correct, delete
+      and port your personal data, and to object to processing based on legitimate
+      interests. Because the application stores everything locally and we hold no copy of
+      it, there is generally nothing for us to hand over. For data held by the advertising
+      partner, the exercise of those rights is best directed at them, and the links above
+      are the quickest route.
+    </p>
+
+    <h2 id="children">Children</h2>
+    <p>
+      Novaris is not directed at children under 13 and we do not knowingly collect
+      personal information from them. The application creates no online account, so there
+      is no profile to have.
+    </p>
+
+    <h2 id="contact">Contact and changes</h2>
+    <p>
+      If anything here is unclear or you believe it is inaccurate, say so. A privacy
+      statement that cannot be questioned is worth very little.
+    </p>
+    <p>
+      When this policy changes materially, the date at the top changes with it, and the
+      change is described in the release notes shipped inside the application.
+    </p>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
+      <p style="margin-top:6px">
+        This website uses advertising cookies, with your consent.
+        <a href="cookies.html">Cookie policy</a> · <a href="why-ads.html">Why we show ads</a> ·
+        <button type="button" data-consent-reset class="linklike">Change your choice</button>
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href="download.html">Download</a><a href="security.html">Security</a><a href="faq.html">FAQ</a>
+      <a href="about.html">About</a><a href="donate.html">Donate</a><a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a><a href="terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google AdSense and its
+    partners will set cookies to measure ads and, where you allow it, personalise them. No advertising
+    script is loaded and no advertising cookie is set until you choose to allow it. Read the
+    <a href="cookies.html">cookie policy</a> and <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">Your choice is stored in this browser only, using local storage rather than a cookie, and is never sent anywhere.</p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>

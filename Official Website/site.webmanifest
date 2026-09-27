@@ -1,0 +1,21 @@
+{
+  "name": "Novaris Browser",
+  "short_name": "Novaris",
+  "description": "A calm, secure browser for Windows. Ads blocked at the request, scam sites stopped, passwords sealed on your own PC.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#04061c",
+  "theme_color": "#04061c",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

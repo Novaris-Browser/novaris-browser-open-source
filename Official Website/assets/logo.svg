@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Novaris">
+  <title>Novaris</title>
+  <!-- The mark is a four-pointed compass star with a centred dot. Drawn as
+       geometry rather than a bitmap so it stays sharp at any size and needs no
+       image request. -->
+  <defs>
+    <linearGradient id="nv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbe2ff"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#nv)" d="M32 1.5c1.2 0 2.1 1 2.4 2.4L37 21.6c.3 1.4 1.3 2.4 2.7 2.7l17.6 2.6c1.4.3 2.4 1.2 2.4 2.4s-1 2.1-2.4 2.4L39.7 34.3c-1.4.3-2.4 1.3-2.7 2.7l-2.6 17.6c-.3 1.4-1.2 2.4-2.4 2.4s-2.1-1-2.4-2.4l-2.6-17.6c-.3-1.4-1.3-2.4-2.7-2.7L6.7 31.7C5.3 31.4 4.3 30.5 4.3 29.3s1-2.1 2.4-2.4l17.6-2.6c1.4-.3 2.4-1.3 2.7-2.7l2.6-17.6c.3-1.4 1.2-2.4 2.4-2.4Z"/>
+  <circle cx="32" cy="29.3" r="5.4" fill="#2b2f8f"/>
+</svg>

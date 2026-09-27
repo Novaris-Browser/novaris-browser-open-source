@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Novaris Protects You — Security, Explained | Novaris Browser</title>
+<meta name="description" content="How Novaris protects you: the AES-256-GCM vault, request-level ad blocking, domain-locked password fill, local phishing detection, and the limits we cannot overcome.">
+<meta name="keywords" content="how does a secure browser work, AES-256-GCM explained, Argon2id password hashing, credential phishing defence, ad blocking at request level, IDN homograph attack, typosquatting detection">
+<meta name="robots" content="index, follow, max-snippet:-1">
+<meta name="theme-color" content="#04061c">
+<link rel="canonical" href="https://novarisbrowser.example/security.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="How Novaris Protects You — Security, Explained">
+<meta property="og:description" content="The vault, the ad blocker, the scam blocklist, the credential guard and the local phishing checks, explained in detail.">
+<meta property="og:url" content="https://novarisbrowser.example/security.html">
+<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How Novaris Protects You — Security, Explained",
+  "description": "A detailed look at how Novaris protects you, from vault cryptography to local phishing detection.",
+  "url": "https://novarisbrowser.example/security.html",
+  "inLanguage": "en-GB",
+  "datePublished": "2026-09-27",
+  "dateModified": "2026-09-27",
+  "author": { "@id": "https://novarisbrowser.example/#organization" },
+  "publisher": { "@id": "https://novarisbrowser.example/#organization" },
+  "isPartOf": { "@id": "https://novarisbrowser.example/#website" },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://novarisbrowser.example/security.html" }
+}
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="24" height="24"><span>NOVARIS</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="why-ads.html">Why ads</a>
+      <a href="donate.html">Donate</a>
+      <a href="faq.html">FAQ</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell section">
+  <div class="prose">
+    <h1>How Novaris Protects You</h1>
+    <p class="legal-updated">Last updated: 27 September 2026</p>
+    <p>
+      A security page that only lists features is marketing. This one explains how each
+      protection actually works, and includes the parts that turned out to be harder than
+      expected, including a Chromium security switch we built, tested, found did nothing,
+      and removed rather than shipped as a feature.
+    </p>
+
+    <div class="toc glass reveal">
+      <strong>On this page</strong>
+      <a href="#vault">The vault: how a password is stored</a>
+      <a href="#argon">Argon2id, and why not scrypt</a>
+      <a href="#fill">Domain-locked password fill</a>
+      <a href="#blocking">Blocking at the request</a>
+      <a href="#boundaries">Why blocking a host is not blocking a platform</a>
+      <a href="#phishing">Reading an address for lies</a>
+      <a href="#homograph">Homograph and punycode attacks</a>
+      <a href="#webrtc">The WebRTC limit, in full</a>
+      <a href="#lessons">Two things we built and threw away</a>
+    </div>
+
+    <h2 id="vault">The vault: how a password is stored</h2>
+    <p>
+      Novaris never reads a Chrome or Edge password database on its own. Importing is
+      always something you start, and you can see what will come across before it is
+      saved. That is a deliberate design choice: a browser that quietly harvests your
+      existing passwords has already lost the argument about trust.
+    </p>
+    <p>When you save a credential, three things happen.</p>
+    <ol>
+      <li>
+        <strong>It is sealed on its own.</strong> Each record is encrypted separately with
+        AES-256-GCM, using a random key and a fresh nonce for that record alone. Encrypting
+        the whole vault as one blob would mean one flaw exposes every credential, and it
+        would make a single corrupt record a total loss.
+      </li>
+      <li>
+        <strong>It is bound to its own identity.</strong> The record's identifier is fed
+        into the encryption as additional authenticated data. An attacker who can write to
+        the vault file cannot move a record somewhere else, rename it, or swap one
+        credential for another without the change being detected.
+      </li>
+      <li>
+        <strong>The result is then protected by Windows itself</strong>, using the
+        operating system's encryption at rest. Defence in depth: two independent layers,
+        either of which alone would be inconvenient to break.
+      </li>
+    </ol>
+    <p>
+      Once a browser password is set, it is a hard lock. There is no
+      "continue without unlocking" option, and there is no back door, because a back door
+      is a lock with a wall knocked out of it. The only supported route past a forgotten
+      browser password is to reset the vault, which destroys its contents.
+    </p>
+    <p>
+      That also means we cannot recover your vault. Nobody can, including us. A support
+      process that can reset a vault is a support process that can open one, and there is
+      no way to build the first without also building the second.
+    </p>
+
+    <h2 id="argon">Argon2id, and why not scrypt</h2>
+    <p>
+      The key that seals your vault is derived from your browser password using Argon2id,
+      with a per-record random salt. Argon2id is memory-hard, which is the property that
+      matters: it makes a GPU or an array of cheap chips far less effective at guessing,
+      because the work cannot be parallelised across simple cores the way a plain hash can.
+    </p>
+    <p>
+      We started on scrypt and moved to Argon2id. Argon2id's hybrid mode also resists a
+      class of side-channel attack that scrypt is more exposed to, which mattered for a
+      key protecting long-lived credentials.
+    </p>
+    <p>
+      One implementation detail worth knowing, because it caused a genuine bug: Chromium's
+      bundled Node reports <code>crypto.argon2</code> as a function that then throws when
+      called. A check of the form "does this exist" is not a working detection. The code
+      attempts a real derivation instead, which is the only test that tells the truth. We
+      found this because unit tests run in the system Node, where the native module works
+      fine, and only the packaged build failed.
+    </p>
+
+    <h2 id="fill">Domain-locked password fill</h2>
+    <p>
+      A saved credential is only ever filled into the exact host it was saved for. Not
+      the parent domain, not a subdomain, not a lookalike. This is the single most
+      effective defence against credential phishing, and it is worth being precise about
+      why.
+    </p>
+    <p>
+      The popular argument is that stealing cookies cross-origin is a risk. It is not,
+      properly understood. A cookie set for <code>example.com</code> is attached to
+      requests to <code>example.com</code> by the browser itself, and no amount of care
+      taken by a script running on <code>attacker.com</code> changes that. The browser
+      enforces the boundary, and it is a good boundary.
+    </p>
+    <p>
+      The real attack is simpler and more effective. A phishing page at
+      <code>example.com.evil.tk</code> renders a convincing copy of a bank's sign-in form.
+      The victim types their real password into it. The attacker's script sees it directly,
+      in clear text, as the user types. No cookie theft, no cross-origin trick, no
+      sophistication at all.
+    </p>
+    <p>
+      So Novaris refuses to fill a credential anywhere but its own host, and separately
+      raises a warning when a page imitates a well-known sign-in provider. Between the two,
+      the common version of this attack has to get lucky, because the password is never
+      offered to the page in the first place.
+    </p>
+
+    <h2 id="blocking">Blocking at the request</h2>
+    <p>
+      Novaris blocks advertising and tracking at the network layer, before the request
+      leaves your machine. That detail has a real consequence worth spelling out: because
+      the request is never sent, the advertising company never learns that you visited a
+      page that contained their tag.
+    </p>
+    <p>
+      Cosmetic filtering, which hides an advert with CSS after it has already loaded, is a
+      different and weaker approach. The request has been made, the company has been told,
+      and you have downloaded the bytes you were trying to avoid. Blocking first is the
+      only version that does not leak.
+    </p>
+    <p>There are three levels, and the tiers are honest about their trade-offs:</p>
+    <ul>
+      <li><strong>Always on.</strong> Advertising networks. These are not ambiguous.</li>
+      <li>
+        <strong>Opt-in.</strong> Analytics hosts, which are also not usually wanted but
+        occasionally break a site.
+      </li>
+      <li>
+        <strong>Strict.</strong> Everything else that looks like tracking, which is the
+        setting most likely to break something. It exists, it does what it says, and the
+        interface does not pretend otherwise.
+      </li>
+    </ul>
+    <p>
+      A live counter shows what was stopped and which host was behind it, because an
+      ad blocker you cannot audit is a box you have been asked to trust.
+    </p>
+
+    <h2 id="boundaries">Why blocking a host is not blocking a platform</h2>
+    <p>
+      The reported scam and malware list blocks specific hosts. It never blocks a hosting
+      platform because someone abused a page on it.
+    </p>
+    <p>
+      This is worth being firm about, because the shortcut is tempting and the
+      consequences are severe. If a phishing page is reported at
+      <code>roblox-redeem-codes.onrender.com</code>, the correct action is to block that
+      exact host. Blocking <code>onrender.com</code> would take down every legitimate site
+      a small developer has ever hosted there, in exchange for removing one bad page. It
+      would be a punishment delivered to the wrong people, and it is the reason we match on
+      the exact host and its subdomains, never on the platform suffix.
+    </p>
+    <p>
+      A blocklisted host is stopped before the page loads, with the reason shown. The
+      override is deliberately awkward: a warning page, then a second confirmation, and
+      the choice applies for that session only. If bypassing a warning were one click, the
+      warning would be a suggestion.
+    </p>
+
+    <h2 id="phishing">Reading an address for lies</h2>
+    <p>
+      The Website Trust Card scores the address you are looking at, entirely on your
+      machine. No address is sent anywhere, there is no reputation service to query, and
+      the check works with no internet connection. That is a constraint as much as a
+      design, and it defines both what it can and cannot catch.
+    </p>
+    <p>It looks for four things.</p>
+
+    <h3>A brand name in the wrong place</h3>
+    <p>
+      The part of an address a person reads as "the site" is the registrable domain. If a
+      brand appears only <em>before</em> that part, anyone can write it:
+      <code>paypal.com.evil.tk</code> is a real address, and it is not PayPal. This is the
+      most reliably detectable class of impersonation, because the honest domain is
+      sitting there in plain sight with the real one hiding in front of it.
+    </p>
+
+    <h3>Sign-in wording next to a brand</h3>
+    <p>
+      A brand on its own is often harmless, because plenty of legitimate domains extend a
+      brand name. A brand <em>combined</em> with words like "login", "verify" or "secure"
+      is the shape of a credential harvest, and it is scored accordingly.
+    </p>
+
+    <h3>Characters standing in for letters</h3>
+    <p>
+      <code>paypa1.com</code> and <code>g00gle.com</code> are not typos, they are
+      impersonation. So are addresses where letters have been replaced with characters from
+      another alphabet that look the same. Both are normalised back to what a human reads
+      and compared against the real brand.
+    </p>
+
+    <h3>Internationalised domains</h3>
+    <p>
+      A domain encoded in punycode, or written in a script that renders as Latin, is
+      flagged because the underlying characters are not the ones they appear to be. This is
+      discussed properly in the next section, because it produced a real bug in our own
+      detection.
+    </p>
+
+    <h2 id="homograph">Homograph and punycode attacks</h2>
+    <p>
+      An internationalised domain name can be written with any script your system has
+      fonts for. The Cyrillic letter "а" is visually identical to the Latin "a" at most
+      sizes. A domain containing it looks exactly like a brand you trust, and it is not.
+    </p>
+    <p>
+      We built detection for this and got it subtly wrong, which is worth recording. The
+      first version flagged a domain as suspicious when it mixed scripts, meaning it
+      contained both Latin and Cyrillic characters. That is the wrong test. The dangerous
+      case is a domain written <em>entirely</em> in one script, because then there is no
+      Latin character to contrast it with and the check finds nothing to complain about.
+    </p>
+    <p>
+      A pure-Cyrillic imitation of "apple" was invisible to the original rule. The fix was
+      to flag the presence of any non-Latin script at all, rather than the mixture of
+      scripts. Real addresses are held to the same test as hostile ones: 30 legitimate
+      domains are pinned as a regression set, including ones that legitimately extend a
+      brand name, because a phishing detector that cries wolf on
+      <code>login.microsoftonline.com</code> is worse than no detector.
+    </p>
+
+    <h2 id="webrtc">The WebRTC limit, in full</h2>
+    <p>
+      This is the most important limitation in the product, so it gets a full section
+      rather than a footnote.
+    </p>
+    <p>
+      WebRTC is a browser feature for real-time communication. Part of how it works is
+      discovering your own network addresses so a connection can be set up directly with
+      another person rather than relayed. The discovery uses a STUN server, and the address
+      that comes back is your public IP address.
+    </p>
+    <p>
+      A website can ask for this. No permission prompt is shown, because none is needed
+      for an ordinary call. In testing, a page that opened a peer connection received a
+      candidate containing a real public IP address.
+    </p>
+    <p>Chromium has a setting intended to limit this. We tested it three ways.</p>
+    <ul>
+      <li>Applied through the application's own configuration: the server-reflexive candidate still appeared.</li>
+      <li>Applied directly on the process command line, before startup: still appeared.</li>
+      <li>Blackholing the STUN host so it could not resolve: still appeared.</li>
+    </ul>
+    <p>
+      Having tried all three, we removed the feature rather than ship a switch that did
+      nothing. A security control that appears to work and does not is worse than its
+      absence, because it teaches the user to stop looking.
+    </p>
+    <p>
+      The mitigations that do work are a network-level anonymiser such as a VPN or Tor, or
+      an extension that removes WebRTC from the page entirely. Novaris does not stop this
+      and does not claim to.
+    </p>
+
+    <h2 id="lessons">Two things we built and threw away</h2>
+    <p>
+      Both of these were real features, and both were removed after they were measured.
+      They are here because a security page that only lists what works is telling you
+      half the story.
+    </p>
+
+    <h3>A feature that silently did nothing</h3>
+    <p>
+      The compatibility classifier for browser extensions was originally written to read
+      fields from a parsed extension manifest that the parser did not return. It therefore
+      classified every extension as fully working, including ones whose background code
+      could never run. The unit tests passed the entire time, because they were testing the
+      classifier against hand-built input rather than against a real manifest.
+    </p>
+    <p>
+      It was found by loading actual extensions into the packaged build and reading what
+      the application said. The lesson is not about that particular bug: it is that
+      integration tests against the real artifact find things that unit tests cannot, and
+      a security feature that reports "all clear" by default is the worst possible failure
+      mode.
+    </p>
+
+    <h3>A build that shipped broken and tested green</h3>
+    <p>
+      A module was placed in a directory that is not included in the packaged
+      application. The unit tests passed, the front-end build passed, and 410 tests passed,
+      because all three resolve modules from source. The shipped application would not
+      start, and it did so silently: the process stayed alive with no window and no error
+      message.
+    </p>
+    <p>
+      There is now a test that walks every relative import in the main process and checks
+      it against the packaging allowlist. It is a small test that would have caught a
+      completely broken release.
+    </p>
+
+    <p style="margin-top:40px">
+      <a class="btn btn-primary" href="download.html">Download for Windows</a>
+      <a class="btn" href="index.html#limits">See all known limits</a>
+    </p>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
+      <p style="margin-top:6px">
+        This website uses advertising cookies, with your consent.
+        <a href="cookies.html">Cookie policy</a> · <a href="why-ads.html">Why we show ads</a> ·
+        <button type="button" data-consent-reset class="linklike">Change your choice</button>
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href="download.html">Download</a><a href="faq.html">FAQ</a><a href="about.html">About</a>
+      <a href="donate.html">Donate</a><a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a><a href="terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google AdSense and its
+    partners will set cookies to measure ads and, where you allow it, personalise them. No advertising
+    script is loaded and no advertising cookie is set until you choose to allow it. Read the
+    <a href="cookies.html">cookie policy</a> and <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">Your choice is stored in this browser only, using local storage rather than a cookie, and is never sent anywhere.</p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>

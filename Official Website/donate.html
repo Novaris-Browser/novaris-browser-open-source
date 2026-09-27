@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Donate | Novaris Browser</title>
+<meta name="description" content="Support the Novaris Browser project. Voluntary donations pay for code signing certificates, hosting and release infrastructure, and buy no service.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#04061c">
+<link rel="canonical" href="https://novarisbrowser.example/donate.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="Donate | Novaris Browser">
+<meta property="og:description" content="Voluntary donations keep an independent browser independent. No account, no subscription, no strings.">
+<meta property="og:url" content="https://novarisbrowser.example/donate.html">
+<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Donate",
+  "url": "https://novarisbrowser.example/donate.html",
+  "inLanguage": "en-GB",
+  "isPartOf": { "@id": "https://novarisbrowser.example/#website" }
+}
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="24" height="24"><span>NOVARIS</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="security.html">Security</a>
+      <a href="why-ads.html">Why ads</a>
+      <a href="faq.html">FAQ</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell section">
+  <div class="prose" style="max-width:none">
+    <h1>Donate</h1>
+<h2>Where to donate</h2>
+    <p>
+      Novaris is free, has no accounts, and has nothing to sell you. Donations are the
+      cleanest way to keep it that way: they create no obligation, they leave no record
+      tied to your browsing, and they buy you no say in what gets built.
+    </p>
+
+    <div class="notice glass reveal" style="margin:26px 0">
+      <span>
+        <strong>Note for the project owner.</strong> Both payment buttons below are
+        deliberately inert until real details are supplied. Open <code>js/config.js</code> and fill in the PayPal and Cash App fields, then set each matching <code>enabled</code> flag to <code>true</code>. Until then they are visibly
+        disabled rather than pointing at an account that does not exist.
+      </span>
+    </div>
+
+    <div class="donate-grid">
+      <article class="donate-card glass reveal">
+        <h3>
+          <span class="card-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.7 1 6.4 2.6L21 8"/><path d="M21 3v5h-5"/></svg>
+          </span>
+          PayPal
+        </h3>
+        <span class="placeholder-tag">Not configured yet</span>
+        <p>
+          Pay through PayPal using a card, a bank account, or PayPal balance. The simplest
+          option for most people, and it works from any country PayPal supports.
+        </p>
+        <a class="btn btn-primary" data-donate-paypal rel="nofollow noopener" target="_blank">Donate with PayPal</a>
+      </article>
+
+      <article class="donate-card glass reveal">
+        <h3>
+          <span class="card-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+          </span>
+          Cash App
+        </h3>
+        <span class="placeholder-tag">Not configured yet</span>
+        <p>
+          Cash App takes a cashtag with no account details, which is about as little
+          information as a donation can carry. Useful if you would rather not hand over a
+          bank account or card.
+        </p>
+        <a class="btn btn-primary" data-donate-cashapp rel="nofollow noopener" target="_blank">Donate with Cash App</a>
+      </article>
+    </div>
+
+    <h2>What donations pay for</h2>
+    <p>
+      Being specific here matters, because a vague funding page is a way of avoiding
+      scrutiny.
+    </p>
+    <ul>
+      <li>
+        <strong>Code signing certificates.</strong> These are the most direct cost. A
+        signed installer is what stops Windows SmartScreen from warning every person who
+        downloads Novaris for the first time.
+      </li>
+      <li>
+        <strong>Release hosting and the update feed.</strong> Every update you download
+        passes through this. It has to keep running, quietly, forever.
+      </li>
+      <li>
+        <strong>The domain and the certificate for it.</strong> Renewed annually, and not
+        optional.
+      </li>
+      <li>
+        <strong>Testing on real Windows machines.</strong> A meaningful part of the work is
+        finding out what a feature actually does in the packaged build rather than in a
+        developer's copy.
+      </li>
+    </ul>
+    <p>
+      Donations do not buy a support contract, a response time, a feature, or a say in the
+      roadmap. If you want a feature built, ask on the issue tracker. If you want a bug
+      fixed, that does not require money either.
+    </p>
+
+    <h2>What you get</h2>
+    <p>
+      A sincere thank you, and the knowledge that an independent browser with no accounts
+      and no telemetry kept existing. There is no badge, no tier, no early access, and no
+      list of donors published anywhere.
+    </p>
+
+    <h2>Why a project like this needs help</h2>
+    <p>
+      Building a browser is not hard because of the code. It is hard because of the
+      long tail: Chromium ships security fixes continuously, someone has to track them
+      and test that each one has not broken the layer built on top of it. That is years of
+      unglamorous work, and it does not fit neatly into a sponsorship slide.
+    </p>
+    <p>
+      If you would rather not donate, the most useful thing costs nothing: install it, use
+      it for a week, and report what broke. Real usage finds real bugs, and we would far
+      rather have those than money.
+    </p>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
+      <p style="margin-top:6px">
+        This website uses advertising cookies, with your consent.
+        <a href="cookies.html">Cookie policy</a> · <a href="why-ads.html">Why we show ads</a> ·
+        <button type="button" data-consent-reset class="linklike">Change your choice</button>
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href="download.html">Download</a><a href="security.html">Security</a><a href="faq.html">FAQ</a>
+      <a href="about.html">About</a><a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a><a href="terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google AdSense and its
+    partners will set cookies to measure ads and, where you allow it, personalise them. No advertising
+    script is loaded and no advertising cookie is set until you choose to allow it. Read the
+    <a href="cookies.html">cookie policy</a> and <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">Your choice is stored in this browser only, using local storage rather than a cookie, and is never sent anywhere.</p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>

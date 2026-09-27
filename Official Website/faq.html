@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frequently Asked Questions | Novaris Browser</title>
+<meta name="description" content="Answers about what Novaris Browser is, what it blocks, where your passwords go, whether Chrome extensions work, what it costs, and the limits it does not overcome.">
+<meta name="keywords" content="Novaris Browser FAQ, is Novaris safe, does Novaris phone home, Chrome extension support, is Novaris free, private browsing">
+<meta name="robots" content="index, follow, max-snippet:-1">
+<meta name="theme-color" content="#04061c">
+<link rel="canonical" href="https://novarisbrowser.example/faq.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="Frequently Asked Questions | Novaris Browser">
+<meta property="og:description" content="What it is, what it blocks, where your passwords go, and what it cannot do.">
+<meta property="og:url" content="https://novarisbrowser.example/faq.html">
+<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "url": "https://novarisbrowser.example/faq.html",
+  "inLanguage": "en-GB",
+  "isPartOf": { "@id": "https://novarisbrowser.example/#website" },
+  "mainEntity": [
+    { "@type": "Question", "name": "Is Novaris really Chrome, or a rebrand of it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It uses Chromium, the same rendering engine Chrome is built on. What Novaris changes is everything around the engine: which requests are allowed, what is stored, and what a site is told. Saying it is Chromium is honest; claiming to be Chrome would not be." } },
+    { "@type": "Question", "name": "Does the Novaris application send anything to Google?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. A Chromium network log over a real session visiting three sites recorded 39 requests to exactly three hosts, all page content, with no telemetry, Safe Browsing, component updater or autofill upload. This website is separate and does show advertising with your consent." } },
+    { "@type": "Question", "name": "What happens to my passwords?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Importing is always something you start yourself. Novaris never reads a Chrome or Edge password database on its own. Saved credentials are sealed with AES-256-GCM under an Argon2id key, and only ever filled into the host they were saved for." } },
+    { "@type": "Question", "name": "Can someone support recover my vault?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. There is no reset link, no recovery code sent to an address, and no back door. If you lose your browser password the only supported route resets the vault and destroys its contents. A support process that can reset a vault is a process that can open one." } },
+    { "@type": "Question", "name": "Is there an account or a subscription?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No account, and nothing to pay for. There is no server component, which is why there is nothing to sign in to." } },
+    { "@type": "Question", "name": "Will it force an update on me?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It asks first and shows the download size. Every release publishes a SHA-512 hash which the app verifies before installing." } },
+    { "@type": "Question", "name": "Can I use my Chrome or Edge extensions?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Manifest V2 extensions work. Most current extensions are Manifest V3, whose background runs in a service worker Electron does not execute. Novaris detects this from the manifest, warns you before installing, and labels it afterwards." } },
+    { "@type": "Question", "name": "Does the ad blocker ever break websites?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The default level blocks advertising networks only, which is rarely what a site depends on. The strict level is where breakage is possible, and it is opt-in for that reason. A live counter shows what was blocked and by whom." } },
+    { "@type": "Question", "name": "What can still see me?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A site that configures a STUN server can obtain your public IP address through WebRTC with no permission prompt, and Chromium's own switches do not prevent it. Blocking is usually effective at hiding your local network address. This is stated in full on the limits page." } },
+    { "@type": "Question", "name": "Does it work on Mac or Linux?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not yet. Novaris is Windows-only, and parts of it depend on Windows cryptography and the Windows vault, so a Mac or Linux build would be a different piece of work rather than a recompile." } }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="24" height="24"><span>NOVARIS</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="security.html">Security</a>
+      <a href="why-ads.html">Why ads</a>
+      <a href="donate.html">Donate</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell section">
+  <div class="prose">
+    <h1>Frequently asked questions</h1>
+    <p>
+      The questions people actually ask, including the ones that would be uncomfortable
+      to answer honestly.
+    </p>
+
+    <div class="faq" style="margin-top:32px">
+      <details class="glass reveal" open>
+        <summary>Is Novaris really Chrome, or a rebrand of it?</summary>
+        <p>
+          It uses Chromium, the same rendering engine Chrome is built on. What Novaris
+          changes is everything around it: which network requests are allowed, what is
+          written to disk, and what a website is told about you. Describing it as a
+          Chromium browser is honest; claiming to be Chrome would not be.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Does the application send anything to Google?</summary>
+        <p>
+          No. We measured rather than trusting the configuration: a Chromium network log
+          over a real session visiting three unrelated sites recorded 39 requests to
+          exactly three hosts, all of them page content. No telemetry, no Safe Browsing
+          pings, no component updater, no variations service, no autofill upload.
+        </p>
+        <p>
+          This website is a separate thing and does carry advertising, with your consent.
+          The <a href="why-ads.html">page explaining why</a> sets out the distinction
+          honestly, including the part of it that is uncomfortable.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>What happens to my passwords?</summary>
+        <p>
+          You choose whether to move them. Novaris never reads a Chrome or Edge password
+          database on its own, and importing is a deliberate step where you review what
+          comes across.
+        </p>
+        <p>
+          Once saved, each credential is sealed individually with AES-256-GCM under a key
+          derived from your browser password using Argon2id, and is only ever filled back
+          into the exact host it was saved for. A lookalike sign-in page is refused
+          outright rather than offered the password.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Can support recover my vault if I forget the password?</summary>
+        <p>
+          No. There is no reset link, no recovery code emailed to an address, and no back
+          door. The only supported route resets the vault and destroys its contents.
+        </p>
+        <p>
+          This is deliberate. A support process that can reset a vault is a support
+          process that can open one, and the two cannot be separated. If that trade is not
+          one you would make, Novaris is not the right browser for you, and that is a
+          legitimate reason to say so.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Is there an account or a subscription?</summary>
+        <p>No account, and nothing to pay for. There is no server component, which is also why there is nothing to sign in to.</p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Will it force an update on me?</summary>
+        <p>
+          It asks first and shows the download size before anything is fetched. Every
+          release publishes a SHA-512 hash, and the app verifies the installer against it
+          before installing. Uninstalling removes your profile entirely, so the next
+          install is a genuine clean start.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Can I use my Chrome or Edge extensions?</summary>
+        <p>
+          Manifest V2 extensions work: content scripts, background pages and
+          <code>webRequest</code> based blocking all function.
+        </p>
+        <p>
+          Most current extensions are Manifest V3, whose background logic runs in a
+          service worker. Novaris cannot run those, which is a limit of the engine rather
+          than a setting. Google also offers no install API to third-party browsers, so
+          there is no honest way to make "Add to Chrome" work here.
+        </p>
+        <p>
+          What Novaris does instead is detect the problem from the manifest, warn you
+          <em>before</em> you install, and label the extension afterwards. An extension
+          that appears installed and quietly does nothing is worse than one you were told
+          about in advance.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Does the ad blocker ever break websites?</summary>
+        <p>
+          The default level blocks advertising networks only, which is rarely something a
+          site actually depends on. Breakage is possible at the strict level, which is
+          exactly why it is opt-in rather than the default.
+        </p>
+        <p>
+          A live counter shows what was blocked, how many requests, and which host was
+          responsible. An ad blocker you cannot audit is a box you have been asked to
+          trust.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>What can still see me, if the site is not on a list?</summary>
+        <p>
+          Two things, and both are stated plainly rather than buried.
+        </p>
+        <p>
+          A site can obtain your <strong>public IP address</strong> through WebRTC if it
+          configures a STUN server, with no permission prompt. We tested Chromium's own
+          three mechanisms for preventing this and none of them worked, so we do not claim
+          otherwise. The mitigations that do work are a network-level anonymiser or an
+          extension that removes WebRTC.
+        </p>
+        <p>
+          Your <strong>local network address</strong> is usually hidden by Chromium's
+          anonymisation of local addresses, and we verified it is in the packaged build. A
+          site that wants to know where you are can still see the country your connection
+          appears to originate from, because that is inherent to using the internet.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>What do the phishing checks actually catch?</summary>
+        <p>
+          Hostname impersonation: addresses that imitate a brand through lookalike
+          characters, digits standing in for letters, internationalised domains, or a
+          real brand parked in front of somebody else's address.
+        </p>
+        <p>
+          It is not a reputation service, so a brand-new malicious domain with an unusual
+          name can still get through. That is the honest limit, and it is why the Trust
+          Card shows the reasoning rather than a bare verdict.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Why does this website have ads when the browser is about privacy?</summary>
+        <p>
+          The project is free, has no accounts and cannot be funded by selling data it does
+          not have. So the website carries advertising, and says so plainly. Ads load only
+          after you allow them, and the application contains none.
+        </p>
+        <p>The <a href="why-ads.html">full reasoning</a> also explains why we think that is a defensible line rather than a comfortable one.</p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>Does it work on Mac or Linux?</summary>
+        <p>
+          Not yet. Novaris is Windows-only. Parts of it depend on Windows cryptography and
+          the Windows credential store, so a Mac or Linux version would be a different
+          project rather than a recompile, and we would rather do one thing properly.
+        </p>
+      </details>
+
+      <details class="glass reveal">
+        <summary>How do I get rid of Novaris completely?</summary>
+        <p>
+          Uninstall it. The installer removes your profile, including history, bookmarks
+          and the vault, so nothing is left behind. If a crash ever prevents a clean
+          uninstall, the profile folder is in your Windows user profile under Novaris and
+          can be deleted directly.
+        </p>
+      </details>
+    </div>
+
+    <p style="margin-top:40px">
+      <a class="btn btn-primary" href="download.html">Download for Windows</a>
+      <a class="btn" href="security.html">Read the security detail</a>
+    </p>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <p>Novaris Browser for Windows. Built on Chromium, with the noise taken out.</p>
+      <p style="margin-top:6px">
+        This website uses advertising cookies, with your consent.
+        <a href="cookies.html">Cookie policy</a> · <a href="why-ads.html">Why we show ads</a> ·
+        <button type="button" data-consent-reset class="linklike">Change your choice</button>
+      </p>
+    </div>
+    <div class="footer-links">
+      <a href="download.html">Download</a><a href="security.html">Security</a><a href="why-ads.html">Why ads</a>
+      <a href="about.html">About</a><a href="donate.html">Donate</a><a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a><a href="terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google AdSense and its
+    partners will set cookies to measure ads and, where you allow it, personalise them. No advertising
+    script is loaded and no advertising cookie is set until you choose to allow it. Read the
+    <a href="cookies.html">cookie policy</a> and <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">Your choice is stored in this browser only, using local storage rather than a cookie, and is never sent anywhere.</p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>
