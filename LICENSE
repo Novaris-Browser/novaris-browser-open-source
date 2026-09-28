@@ -1,21 +1,78 @@
-MIT License
+# NOVARIS BROWSER SOURCE-AVAILABLE LICENSE
 
-Copyright (c) 2026 Max YT
+Copyright © 2026 Novaris Browser. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Copyright holder: Novaris Browser
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Project: Novaris Browser
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Repository:
+https://github.com/Novaris-Browser/novaris-browser-open-source
+
+## 1. Copyright
+
+The Novaris Browser source code, including its source files, documentation, assets, configuration files, and other original materials, is protected by applicable copyright laws.
+
+Except for the limited rights expressly granted by this license, all rights are reserved by the copyright holder.
+
+## 2. Viewing and Personal Use
+
+You are permitted to:
+
+* View the source code.
+* Download a copy of the source code for personal inspection.
+* Study how the software works.
+* Use the source code for educational and research purposes.
+* Report bugs and security vulnerabilities.
+
+These permissions do not transfer ownership of the source code to you.
+
+## 3. Restrictions
+
+Without prior written permission from Novaris Browser, you may NOT:
+
+* Copy or redistribute the source code or substantial portions of it.
+* Publish a fork or modified version of Novaris Browser.
+* Create a competing browser substantially based on Novaris Browser.
+* Sell or commercially distribute the source code or software derived from it.
+* Rebrand, rename, or represent Novaris Browser or a substantially derived version as your own software.
+* Remove copyright, license, or attribution notices.
+* Use Novaris Browser source code as the basis of another software product.
+* Upload copies or substantial portions of the source code to another public repository.
+* Use the Novaris name, logo, trademarks, or branding to imply official affiliation without permission.
+
+## 4. Modifications
+
+You may make private modifications to the source code for personal, educational, or research purposes.
+
+Private modifications may not be publicly distributed, published, sold, or incorporated into another publicly distributed product without prior written permission from Novaris Browser.
+
+## 5. Contributions
+
+Submitting a contribution, pull request, patch, issue, or other material to the project does not automatically transfer ownership of that contribution to another person.
+
+Any contribution must be submitted under terms agreed upon by the copyright holder.
+
+## 6. Trademarks and Branding
+
+"Novaris Browser", "Novaris", associated logos, graphics, names, and branding are not licensed under this agreement except where explicitly stated.
+
+Permission to view the source code does not grant permission to use Novaris branding.
+
+## 7. Third-Party Components
+
+This license applies only to material owned by Novaris Browser.
+
+Third-party libraries, dependencies, fonts, images, code, and other components remain subject to their respective licenses.
+
+Where a third-party license grants rights that cannot legally be restricted by this license, those rights remain unaffected.
+
+## 8. Security Research
+
+Nothing in this license is intended to prohibit good-faith security research, vulnerability reporting, or responsible disclosure where permitted by applicable law.
+
+Security researchers are encouraged to report vulnerabilities privately before publicly disclosing them.
+
+## 9. No Warranty
+
+Novaris Browser is provided "AS IS", without warran
