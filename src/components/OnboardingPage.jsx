@@ -39,6 +39,7 @@ export default function OnboardingPage({
   onImportPasswords,
   onSetupMaster,
   vaultStatus,
+  platform,
   onComplete,
 }) {
   const [step, setStep] = useState(1);
@@ -47,6 +48,7 @@ export default function OnboardingPage({
   const [themeChoice, setThemeChoice] = useState(settings.theme || 'system');
   const [privacyMode, setPrivacyMode] = useState(settings.clearOnExit ? 'clean' : 'persistent');
   const [defaultRequested, setDefaultRequested] = useState(false);
+  const [defaultRegistered, setDefaultRegistered] = useState(false);
   const [defaultBusy, setDefaultBusy] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
   const [bookmarkMessage, setBookmarkMessage] = useState('');
@@ -61,6 +63,7 @@ export default function OnboardingPage({
     setDefaultBusy(true);
     const result = await onMakeDefault();
     setDefaultRequested(Boolean(result?.opened));
+    setDefaultRegistered(Boolean(result?.supported));
     setDefaultBusy(false);
   };
 
@@ -128,15 +131,15 @@ export default function OnboardingPage({
             <div className="onboarding-hero-icon"><Globe2 size={25} /></div>
             <span className="eyebrow">Welcome to Novaris</span>
             <h1>A calmer way<br /><em>to browse.</em></h1>
-            <p className="onboarding-lead">Your data stays on this device. Novaris uses a real Chromium engine, isolated page views, and a Windows-protected vault for the credentials you choose to save.</p>
+            <p className="onboarding-lead">Your data stays on this device. Novaris uses a real Chromium engine, isolated page views, and an operating-system-protected vault for the credentials you choose to save.</p>
             <div className="onboarding-benefits">
               <div><ShieldCheck size={17} /><span><strong>Private by architecture</strong><small>Pages never receive Node.js access.</small></span></div>
-              <div><KeyRound size={17} /><span><strong>Your own local vault</strong><small>Encrypted by Windows, never uploaded.</small></span></div>
+              <div><KeyRound size={17} /><span><strong>Your own local vault</strong><small>{platform === 'linux' ? 'Encrypted by your system keyring, never uploaded.' : 'Encrypted by Windows, never uploaded.'}</small></span></div>
             </div>
             <div className="default-browser-card">
               <div className="default-browser-icon"><Globe2 size={19} /></div>
-              <div><strong>Make Novaris your default browser?</strong><span>Windows will open its Default Apps settings for confirmation.</span></div>
-              <button className="secondary-button" type="button" onClick={makeDefault} disabled={defaultBusy}>{defaultBusy ? 'Opening…' : defaultRequested ? 'Settings opened' : 'Make default'}</button>
+              <div><strong>Make Novaris your default browser?</strong><span>{platform === 'linux' ? 'Your desktop settings will open so you can confirm.' : 'Windows will open its Default Apps settings for confirmation.'}</span></div>
+              <button className="secondary-button" type="button" onClick={makeDefault} disabled={defaultBusy}>{defaultBusy ? 'Opening…' : defaultRequested ? 'Settings opened' : defaultRegistered ? 'Registered' : 'Make default'}</button>
             </div>
             <div className="onboarding-import-card"><div className="default-browser-icon"><Upload size={18} /></div><div><strong>Bring your bookmarks with you</strong><span>{bookmarkMessage || 'Import an exported Chrome, Edge, or Firefox bookmarks HTML file.'}</span></div><button className="secondary-button" type="button" onClick={importBookmarks} disabled={bookmarkBusy}>{bookmarkBusy ? 'Importing…' : 'Import HTML'}</button></div>
             <div className="onboarding-import-card"><div className="default-browser-icon"><LockKeyhole size={18} /></div><div><strong>Import passwords from Chrome or Edge?</strong><span>{passwordMessage || 'Use a CSV export you created. Novaris never reads another browser’s encrypted password database.'}</span></div><button className="secondary-button" type="button" onClick={importPasswords} disabled={passwordBusy}>{passwordBusy ? 'Importing…' : 'Import CSV'}</button></div>
@@ -168,15 +171,15 @@ export default function OnboardingPage({
             <span className="eyebrow">Make it yours</span>
             <h1>Set the mood.<br /><em>Keep control.</em></h1>
             <p className="onboarding-lead">These choices are saved on this device and can be changed any time in Settings.</p>
-            <div className="onboarding-choice-group"><span className="eyebrow">Appearance</span><div className="onboarding-choice-row">{[['system', 'Follow Windows', Sparkles], ['light', 'Light', Sun], ['dark', 'Dark', Moon]].map(([id, label, Icon]) => <button className={`onboarding-choice${themeChoice === id ? ' is-selected' : ''}`} type="button" key={id} onClick={() => setThemeChoice(id)}><Icon size={15} /><span>{label}</span>{themeChoice === id && <Check size={13} />}</button>)}</div></div>
+            <div className="onboarding-choice-group"><span className="eyebrow">Appearance</span><div className="onboarding-choice-row">{[['system', 'Follow system', Sparkles], ['light', 'Light', Sun], ['dark', 'Dark', Moon]].map(([id, label, Icon]) => <button className={`onboarding-choice${themeChoice === id ? ' is-selected' : ''}`} type="button" key={id} onClick={() => setThemeChoice(id)}><Icon size={15} /><span>{label}</span>{themeChoice === id && <Check size={13} />}</button>)}</div></div>
             <div className="onboarding-choice-group"><span className="eyebrow">Opening Novaris</span><div className="onboarding-choice-row">{[['newtab', 'New Tab', Sparkles], ['homepage', 'My homepage', Home]].map(([id, label, Icon]) => <button className={`onboarding-choice${startupBehavior === id ? ' is-selected' : ''}`} type="button" key={id} onClick={() => setStartupBehavior(id)}><Icon size={15} /><span>{label}</span>{startupBehavior === id && <Check size={13} />}</button>)}</div></div>
             <div className="onboarding-choice-group"><span className="eyebrow">Privacy baseline</span><div className="onboarding-choice-row">{[['persistent', 'Keep data', Database], ['clean', 'Clear on exit', ShieldCheck]].map(([id, label, Icon]) => <button className={`onboarding-choice${privacyMode === id ? ' is-selected' : ''}`} type="button" key={id} onClick={() => setPrivacyMode(id)}><Icon size={15} /><span>{label}</span>{privacyMode === id && <Check size={13} />}</button>)}</div></div>
-            <div className="onboarding-choice-group onboarding-master-group"><span className="eyebrow">Vault password (recommended)</span>{vaultStatus?.masterConfigured ? <div className="onboarding-master-ready"><Check size={14} /><span>Your vault lock is already configured.</span></div> : <><div className="onboarding-master-note"><LockKeyhole size={14} /><span>Optional, but recommended. It adds an application lock in front of Windows encryption. Novaris cannot recover a forgotten password.</span></div><div className="onboarding-master-inputs"><input type="password" value={masterPassword} onChange={(event) => setMasterPassword(event.target.value)} placeholder="Create vault password" aria-label="Create vault password" /><input type="password" value={masterConfirm} onChange={(event) => setMasterConfirm(event.target.value)} placeholder="Repeat password" aria-label="Repeat vault password" /></div>{masterError && <p className="form-error">{masterError}</p>}</>}</div>
+            <div className="onboarding-choice-group onboarding-master-group"><span className="eyebrow">Vault password (recommended)</span>{vaultStatus?.masterConfigured ? <div className="onboarding-master-ready"><Check size={14} /><span>Your vault lock is already configured.</span></div> : <><div className="onboarding-master-note"><LockKeyhole size={14} /><span>Optional, but recommended. It adds an application lock in front of system encryption. Novaris cannot recover a forgotten password.</span></div><div className="onboarding-master-inputs"><input type="password" value={masterPassword} onChange={(event) => setMasterPassword(event.target.value)} placeholder="Create vault password" aria-label="Create vault password" /><input type="password" value={masterConfirm} onChange={(event) => setMasterConfirm(event.target.value)} placeholder="Repeat password" aria-label="Repeat vault password" /></div>{masterError && <p className="form-error">{masterError}</p>}</>}</div>
             <div className="onboarding-actions"><button className="secondary-button" type="button" onClick={back}><ArrowLeft size={15} />Back</button><button className="primary-button" type="button" onClick={finish} disabled={finishing}>{finishing ? 'Preparing Novaris…' : 'Open my browser'} <ArrowRight size={15} /></button></div>
           </section>
         )}
       </main>
-      <footer className="onboarding-footer"><span>Novaris Browser for Windows</span><span>Data directory: this device</span></footer>
+      <footer className="onboarding-footer"><span>{platform === 'linux' ? 'Novaris Browser for Linux' : 'Novaris Browser for Windows'}</span><span>Data directory: this device</span></footer>
     </div>
   );
 }

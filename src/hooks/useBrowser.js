@@ -853,7 +853,7 @@ export function useBrowser() {
         setVaultStatus((current) => ({ ...current, available: true, locked: true, error: null }));
         setCredentials([]);
       } else {
-        setVaultStatus({ available: false, count: 0, error: 'The encrypted vault is unavailable.' });
+        setVaultStatus({ available: false, count: 0, error: 'The encrypted vault is unavailable.', reason: 'The encrypted vault is unavailable.' });
       }
     }
   }, []);

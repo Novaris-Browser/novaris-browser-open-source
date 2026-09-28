@@ -124,7 +124,7 @@ export default function PasswordVault({
     <div className="vault-panel">
       <div className="vault-intro">
         <div className="vault-intro-icon"><ShieldCheck size={20} /></div>
-        <div><strong>Windows-protected vault</strong><span>Passwords are encrypted by Windows and stay on this device.</span></div>
+        <div><strong>Device-protected vault</strong><span>Passwords are encrypted by your operating system's keyring and stay on this device.</span></div>
         <span className={`vault-status ${status?.locked ? 'is-locked' : status?.available ? 'is-ready' : 'is-unavailable'}`}>{status?.locked ? 'Locked' : status?.available ? 'Ready' : 'Unavailable'}</span>
       </div>
 
@@ -152,7 +152,7 @@ export default function PasswordVault({
 
       <div className="vault-list">
         {filtered.length > 0 ? filtered.map((item) => <CredentialRow key={item.id} item={item} activeUrl={activeUrl} onCopy={onCopy} onFill={onFill} onRemove={onRemove} />) : (
-          <div className="vault-empty"><div className="empty-icon"><KeyRound size={18} /></div><strong>{status?.locked ? 'Vault locked' : status?.available ? 'No saved logins' : 'Vault unavailable'}</strong><span>{status?.locked ? 'Unlock the master password from Settings to view or edit saved logins.' : status?.available ? 'Save a login manually or add one from a current website.' : status?.error || 'Windows encryption is not available.'}</span></div>
+          <div className="vault-empty"><div className="empty-icon"><KeyRound size={18} /></div><strong>{status?.locked ? 'Vault locked' : status?.available ? 'No saved logins' : 'Vault unavailable'}</strong><span>{status?.locked ? 'Unlock the master password from Settings to view or edit saved logins.' : status?.available ? 'Save a login manually or add one from a current website.' : status?.reason || status?.error || 'System encryption is not available.'}</span></div>
         )}
       </div>
 

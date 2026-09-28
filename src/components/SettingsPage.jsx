@@ -99,7 +99,7 @@ function SelectControl({ value, onChange, children, ariaLabel }) {
   return <select className="select-control" value={value} onChange={(event) => onChange(event.target.value)} aria-label={ariaLabel}>{children}</select>;
 }
 
-export default function SettingsPage({ settings, engineCapabilities, activeUrl, sitePermissions, extensions, adblock, storageOverview, downloadDirectory, vaultStatus, credentialCount, suspendedTabs = 0, initialSection = 'general', onUpdate, onImportBookmarks, onImportPasswords, onChooseDownloadDirectory, onClearBrowsingData, onSetSitePermission, onResetSitePermission, onRefreshStorage, onClearSiteStorage, onChooseExtension, onOpenExtensionStore, onImportExtensionPackage, onToggleExtension, onRemoveExtension, onRestoreBuiltinExtension, onUpdateAdblock, onRefreshExtensions, onResetAdblockStats, onSetVaultMaster, onChangeVaultMaster, onDisableVaultMaster, onUnlockVault, onLockVault, onExportVault, onImportVault, onOpenPasswords, onMakeDefaultBrowser, onRunOnboarding, onCheckForUpdates, onDownloadUpdate, onInstallUpdate, onResetProfile, updateState, onClose, version }) {
+export default function SettingsPage({ settings, engineCapabilities, activeUrl, sitePermissions, extensions, adblock, storageOverview, downloadDirectory, vaultStatus, credentialCount, suspendedTabs = 0, platform = 'win32', initialSection = 'general', onUpdate, onImportBookmarks, onImportPasswords, onChooseDownloadDirectory, onClearBrowsingData, onSetSitePermission, onResetSitePermission, onRefreshStorage, onClearSiteStorage, onChooseExtension, onOpenExtensionStore, onImportExtensionPackage, onToggleExtension, onRemoveExtension, onRestoreBuiltinExtension, onUpdateAdblock, onRefreshExtensions, onResetAdblockStats, onSetVaultMaster, onChangeVaultMaster, onDisableVaultMaster, onUnlockVault, onLockVault, onExportVault, onImportVault, onOpenPasswords, onMakeDefaultBrowser, onRunOnboarding, onCheckForUpdates, onDownloadUpdate, onInstallUpdate, onResetProfile, updateState, onClose, version }) {
   const [section, setSection] = useState(initialSection || 'general');
   const [homepageDraft, setHomepageDraft] = useState(settings.homepage || '');
   const [hotkeyDraft, setHotkeyDraft] = useState(settings.globalHotkey || 'Control+Shift+Space');
@@ -192,7 +192,7 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
                     <button className="input-action" type="button" onClick={() => update({ homepage: homepageDraft })} aria-label="Save homepage"><Check size={14} /></button>
                   </div>
                 </SettingRow>
-                <SettingRow title="Default browser" description="Windows requires confirmation in its Default Apps settings.">
+                <SettingRow title="Default browser" description={platform === 'linux' ? 'Your desktop environment confirms the change in its own settings.' : 'Windows requires confirmation in its Default Apps settings.'}>
                   <button className="secondary-button" type="button" onClick={onMakeDefaultBrowser}>Set default</button>
                 </SettingRow>
                 <Toggle checked={settings.restoreSession} onChange={(value) => update({ restoreSession: value })} label="Restore session" description="Reopen your tabs and active tab after a restart or crash." />
@@ -283,7 +283,7 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
                 <div className="privacy-hero-icon"><ShieldCheck size={22} /></div>
                 <div><h2>Privacy is a product feature.</h2><p>Novaris keeps the browser shell separate from page content. Webviews have no Node.js integration, and permission requests are denied by default.</p></div>
               </div>
-              <div className="settings-card info-card persistent-data-card"><Database size={17} /><div><strong>Persistent browser data is enabled</strong><span>Bookmarks, history, settings, downloads, cookies, and the encrypted vault are stored in the Windows user-data directory. Novaris keeps a local metadata backup.</span></div><span className="vault-status is-ready">Saved</span></div>
+                <div className="settings-card info-card persistent-data-card"><Database size={17} /><div><strong>Persistent browser data is enabled</strong><span>Bookmarks, history, settings, downloads, cookies, and the encrypted vault are stored in the Novaris user-data directory. Novaris keeps a local metadata backup.</span></div><span className="vault-status is-ready">Saved</span></div>
               <div className="settings-card">
                 <div className="settings-card-heading"><div className="settings-card-icon"><Trash2 size={17} /></div><div><h2>Clear browsing data</h2><p>Choose exactly what to remove from this device.</p></div></div>
                 <div className="clear-options">
@@ -296,7 +296,7 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
               </div>
               <div className="settings-card">
                 <div className="settings-card-heading"><div className="settings-card-icon"><Timer size={17} /></div><div><h2>Clear when Novaris closes</h2><p>Opt-in cleanup for cookies, cached data, and Novaris history.</p></div></div>
-                <Toggle checked={settings.clearOnExit} onChange={(value) => update({ clearOnExit: value })} label="Clear selected data on exit" description="Runs during a normal Windows shutdown or window close. It cannot run after a crash or forced termination." />
+                <Toggle checked={settings.clearOnExit} onChange={(value) => update({ clearOnExit: value })} label="Clear selected data on exit" description="Runs during a normal shutdown or window close. It cannot run after a crash or forced termination." />
                 <Toggle checked={settings.clearCookiesOnExit} onChange={(value) => update({ clearCookiesOnExit: value })} label="Cookies and site storage" description="Removes website sessions and local storage." />
                 <Toggle checked={settings.clearCacheOnExit} onChange={(value) => update({ clearCacheOnExit: value })} label="Cached website data" description="Keeps the next startup clean." />
                 <Toggle checked={settings.clearHistoryOnExit} onChange={(value) => update({ clearHistoryOnExit: value })} label="Novaris history" description="Clears the visited-page list stored by Novaris." />
@@ -341,7 +341,7 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
           {section === 'storage' && (
             <div className="settings-stack">
               <div className="settings-card">
-                <div className="settings-card-heading"><div className="settings-card-icon"><HardDrive size={17} /></div><div><h2>Storage dashboard</h2><p>See what Novaris and Chromium are keeping on this Windows device.</p></div></div>
+                <div className="settings-card-heading"><div className="settings-card-icon"><HardDrive size={17} /></div><div><h2>Storage dashboard</h2><p>See what Novaris and Chromium are keeping on this device.</p></div></div>
                 <StorageDashboard overview={storageOverview} activeUrl={activeUrl} onRefresh={onRefreshStorage} onClearSite={onClearSiteStorage} />
               </div>
             </div>
@@ -360,11 +360,11 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
             <div className="settings-stack">
               <div className="settings-card privacy-highlight vault-settings-highlight">
                 <div className="privacy-hero-icon"><KeyRound size={22} /></div>
-                <div><h2>Built-in Windows vault</h2><p>Save usernames, email addresses, and passwords locally. Secrets are encrypted with Windows before they touch disk.</p></div>
+                <div><h2>Built-in local vault</h2><p>Save usernames, email addresses, and passwords locally. Secrets are encrypted by your operating system's keyring before they touch disk.</p></div>
               </div>
               <div className="settings-card">
                 <div className="settings-card-heading"><div className="settings-card-icon"><ShieldCheck size={17} /></div><div><h2>Vault status</h2><p>Novaris never syncs credentials to an account or external server.</p></div></div>
-                <div className="vault-settings-status"><div><strong>{vaultStatus?.locked ? 'Vault locked' : vaultStatus?.available ? 'Encryption available' : 'Encryption unavailable'}</strong><span>{credentialCount || 0} saved {credentialCount === 1 ? 'login' : 'logins'} on this device</span></div><span className={`vault-status ${vaultStatus?.locked ? 'is-locked' : vaultStatus?.available ? 'is-ready' : 'is-unavailable'}`}>{vaultStatus?.locked ? 'Locked' : vaultStatus?.available ? 'Ready' : 'Unavailable'}</span></div>
+                <div className="vault-settings-status"><div><strong>{vaultStatus?.locked ? 'Vault locked' : vaultStatus?.available ? 'Encryption available' : 'Encryption unavailable'}</strong><span>{vaultStatus?.available ? `${credentialCount || 0} saved ${credentialCount === 1 ? 'login' : 'logins'} on this device` : (vaultStatus?.reason || 'Novaris will not store passwords without system encryption.')}</span></div><span className={`vault-status ${vaultStatus?.locked ? 'is-locked' : vaultStatus?.available ? 'is-ready' : 'is-unavailable'}`}>{vaultStatus?.locked ? 'Locked' : vaultStatus?.available ? 'Ready' : 'Unavailable'}</span></div>
                 <SettingRow title="Open password manager" description="Save a current website, generate credentials, copy secrets, or fill a login.">
                   <button className="primary-button" type="button" onClick={onOpenPasswords} disabled={!vaultStatus?.available || vaultStatus?.locked}><KeyRound size={14} />Open vault</button>
                 </SettingRow>
@@ -413,7 +413,7 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
                 <Toggle checked={settings.backgroundThrottling} onChange={(value) => update({ backgroundThrottling: value })} label="Throttle background tabs" description="Applies to page timers and animations in inactive tabs." />
                 <Toggle checked={settings.suspendBackgroundTabs} onChange={(value) => update({ suspendBackgroundTabs: value })} label="Reduce inactive tab work" description="Recommended with Memory saver; active tabs remain responsive." />
                 <Toggle checked={settings.reducedMotion} onChange={(value) => update({ reducedMotion: value })} label="Reduce interface motion" description="Disables non-essential glass and panel animations." />
-                <Toggle checked={settings.globalHotkeyEnabled} onChange={(value) => update({ globalHotkeyEnabled: value })} label="Global focus hotkey" description={`Use ${settings.globalHotkey} to focus Novaris from another Windows app.`} />
+                <Toggle checked={settings.globalHotkeyEnabled} onChange={(value) => update({ globalHotkeyEnabled: value })} label="Global focus hotkey" description={`Use ${settings.globalHotkey} to focus Novaris from another app.`} />
                 <SettingRow title="Hotkey combination" description="Use modifiers such as Ctrl, Alt, or Shift followed by one letter or number.">
                   <input className="hotkey-input" value={hotkeyDraft} onChange={(event) => setHotkeyDraft(event.target.value)} onBlur={() => update({ globalHotkey: hotkeyDraft })} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} aria-label="Global focus hotkey combination" />
                 </SettingRow>
@@ -452,7 +452,7 @@ export default function SettingsPage({ settings, engineCapabilities, activeUrl, 
                 <Toggle checked={settings.developerTools} onChange={(value) => update({ developerTools: value })} label="Enable developer tools" description="Allows Ctrl + Shift + I on the active page." />
                 <Toggle checked={settings.hardwareAcceleration} onChange={(value) => update({ hardwareAcceleration: value })} label="Hardware acceleration" description="Applied the next time Novaris starts." />
               </div>
-              <div className="settings-card info-card"><Gauge size={17} /><div><strong>Windows baseline</strong><span>Novaris uses the Chromium GPU and process model, with explicit throttling controls in Performance.</span></div></div>
+              <div className="settings-card info-card"><Gauge size={17} /><div><strong>Chromium baseline</strong><span>Novaris uses the Chromium GPU and process model, with explicit throttling controls in Performance.</span></div></div>
             </div>
           )}
 

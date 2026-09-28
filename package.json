@@ -3,7 +3,11 @@
   "version": "0.8.2",
   "description": "A secure, glass-inspired desktop web browser built with Electron and Chromium.",
   "main": "electron/main.js",
-  "author": "Novaris Browser",
+  "author": {
+    "name": "Novaris Browser",
+    "email": "noreply@novarisbrowser.example"
+  },
+  "homepage": "https://novarisbrowser.example",
   "license": "MIT",
   "private": true,
   "engines": {
@@ -73,6 +77,41 @@
         ],
         "rfc3161TimeStampServer": "http://timestamp.digicert.com"
       }
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Novaris-Browser-${version}-Linux.${ext}",
+      "category": "Network",
+      "synopsis": "Secure, glass-inspired desktop web browser",
+      "description": "A privacy-focused desktop web browser built on Electron and Chromium, with vertical tabs, workspaces, an ad blocker, a local encrypted vault, and no account.",
+      "desktop": {
+        "entry": {
+          "Categories": "Network;WebBrowser;",
+          "MimeType": "text/html;text/xml;application/xhtml+xml;application/xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/novaris;"
+        }
+      }
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ],
+      "priority": "optional"
     },
     "protocols": [
       {

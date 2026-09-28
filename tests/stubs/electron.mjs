@@ -6,10 +6,16 @@ const OBFUSCATION = 0x5a;
 const ENC_PREFIX = 'enc:';
 
 let encryptionAvailable = true;
+// Linux only. Electron returns the keyring actually in use, and 'basic_text' is
+// the one that encrypts with a hardcoded password published in Chromium's
+// source. The default here is a real keyring so existing tests are unaffected.
+let storageBackend = 'gnome_libsecret';
 
 export const safeStorage = {
   isEncryptionAvailable: () => encryptionAvailable,
   setEncryptionAvailable: (value) => { encryptionAvailable = Boolean(value); },
+  getSelectedStorageBackend: () => storageBackend,
+  setStorageBackend: (value) => { storageBackend = String(value); },
   encryptString(value) {
     if (!encryptionAvailable) throw new Error('Encryption is not available.');
     const bytes = Buffer.from(String(value), 'utf8');

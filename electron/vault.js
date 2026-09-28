@@ -20,6 +20,39 @@ const VAULT_MAGIC = Buffer.from('NOVARIS_VAULT_V1\n', 'utf8');
 const LOCK_VERSION = 2;
 const VERIFIER_PLAINTEXT = 'novaris-vault-verifier-v2';
 
+// Which keyring Chromium will actually use to protect the vault file.
+function storageBackend() {
+  if (process.platform !== 'linux') return 'platform-default';
+  if (typeof safeStorage.getSelectedStorageBackend !== 'function') return 'unknown';
+  try { return String(safeStorage.getSelectedStorageBackend() || 'unknown'); } catch { return 'unknown'; }
+}
+
+// On Linux, safeStorage can select a backend called "basic_text", which encrypts
+// the payload with a hardcoded password that ships in Chromium's own source.
+// isEncryptionAvailable() still reports true for it, so availability alone is not
+// enough to decide whether the vault is protected: a user with no desktop
+// keyring would be shown "Encryption available" while anyone who copied the
+// profile could read it. Requiring a real keyring keeps the claim true, and the
+// passwords simply stay unavailable until the user installs one.
+const INSECURE_BACKENDS = new Set(['basic_text', 'unknown']);
+
+function storageBackendIsTrusted() {
+  const backend = storageBackend();
+  return !INSECURE_BACKENDS.has(backend);
+}
+
+function unavailableReason() {
+  if (process.platform !== 'linux') return 'System encryption is not available.';
+  const backend = storageBackend();
+  if (backend === 'basic_text') {
+    return 'No system keyring is available. Novaris needs GNOME Keyring, KWallet, or another Secret Service provider to encrypt the vault.';
+  }
+  if (backend === 'unknown') {
+    return 'The system keyring could not be identified. Novaris will not guess whether it is safe.';
+  }
+  return 'System encryption is not available.';
+}
+
 function safeText(value, maxLength = 500) {
   if (typeof value !== 'string') return '';
   return value.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, maxLength);
@@ -93,7 +126,7 @@ class Vault {
   }
 
   isAvailable() {
-    return safeStorage.isEncryptionAvailable();
+    return safeStorage.isEncryptionAvailable() && storageBackendIsTrusted();
   }
 
   status() {
@@ -104,6 +137,8 @@ class Vault {
     }
     return {
       available: this.isAvailable(),
+      backend: storageBackend(),
+      reason: this.isAvailable() ? '' : unavailableReason(),
       count,
       error: error || this.error,
       locked: this.locked,
@@ -368,7 +403,7 @@ class Vault {
   _assertAvailable() {
     if (this.error) throw new Error(this.error);
     if (!this.isAvailable()) {
-      throw new Error('Windows encryption is not available. Novaris will not store passwords in plaintext.');
+      throw new Error(unavailableReason() + ' Novaris will not store passwords in plaintext.');
     }
   }
 
@@ -458,4 +493,7 @@ class Vault {
 module.exports = {
   Vault,
   isHttpUrl,
+  storageBackend,
+  storageBackendIsTrusted,
+  unavailableReason,
 };

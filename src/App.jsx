@@ -235,6 +235,7 @@ export default function App() {
         onImportPasswords={browser.importPasswordsCsv}
         onSetupMaster={browser.setupVaultMaster}
         vaultStatus={browser.vaultStatus}
+        platform={browser.platform}
         onComplete={async ({ searchEngine, makeDefault, startupBehavior, theme: themeChoice, clearOnExit }) => {
           await browser.updateSettings({
             searchEngine,
@@ -467,6 +468,7 @@ export default function App() {
             onUpdate={browser.updateSettings}
             onImportBookmarks={browser.importBookmarks}
             onImportPasswords={browser.importPasswordsCsv}
+            platform={browser.platform}
             onChooseDownloadDirectory={browser.chooseDownloadDirectory}
             onClearBrowsingData={browser.clearBrowsingData}
             onSetSitePermission={browser.setSitePermission}

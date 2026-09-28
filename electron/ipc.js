@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const { spawn } = require('node:child_process');
 const { clipboard, dialog, ipcMain, shell, session, webContents } = require('electron');
 const { openExternalSafely } = require('./security');
 const { PERSISTENT_PARTITION, pauseDownload, resumeDownload, cancelDownload, retryDownload } = require('./downloads');
@@ -73,15 +74,46 @@ function registerIpcHandlers({ app, getWindow, store, vault, extensionManager, a
   }));
 
   handle('app:make-default-browser', async () => {
-    if (process.platform !== 'win32') return { supported: false, opened: false };
+    if (!['win32', 'linux'].includes(process.platform)) return { supported: false, opened: false };
+    // In development the app runs unpackaged, so registering here would point the
+    // desktop environment at a temporary build instead of the installed one.
     const registered = process.env.VITE_DEV_SERVER_URL
       ? { http: false, https: false }
       : {
         http: app.setAsDefaultProtocolClient('http'),
         https: app.setAsDefaultProtocolClient('https'),
       };
-    await shell.openExternal('ms-settings:defaultapps');
-    return { supported: true, opened: true, registered };
+
+    if (process.platform === 'win32') {
+      await shell.openExternal('ms-settings:defaultapps');
+      return { supported: true, opened: true, registered };
+    }
+
+    // On Linux the desktop environment, not the app, decides the default, so
+    // registration only takes effect once the user confirms it. Each desktop has
+    // its own entry point, so the first one that opens wins; if none does, the
+    // registration is still recorded and the caller says so honestly rather than
+    // claiming a settings window appeared.
+    const candidates = [
+      'gnome-control-center default-applications',
+      'systemsettings defaultapplications',
+      'xfce4-settings-manager default-web-browser',
+      'kde-open5 kcm_browser',
+    ];
+    for (const command of candidates) {
+      // eslint-disable-next-line no-await-in-loop
+      const launched = await new Promise((resolve) => {
+        try {
+          const child = spawn(command, { shell: true, detached: true, stdio: 'ignore' });
+          child.once('error', () => resolve(false));
+          child.unref();
+          // A command that does not exist fails fast; a real one stays alive.
+          setTimeout(() => resolve(true), 350);
+        } catch { resolve(false); }
+      });
+      if (launched) return { supported: true, opened: true, registered };
+    }
+    return { supported: true, opened: false, registered };
   });
 
   handle('reader:extract', async (_event, webContentsId) => {

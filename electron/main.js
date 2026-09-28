@@ -19,6 +19,10 @@ const { UpdateManager } = require('./updater');
 
 app.setName('Novaris Browser');
 
+// Windows and Linux are the two platforms with a packaged build. Anything else
+// gets a clear refusal rather than a crash from a missing platform integration.
+const SUPPORTED_PLATFORMS = ['win32', 'linux'];
+
 let mainWindow = null;
 let store = null;
 let vault = null;
@@ -279,13 +283,16 @@ if (!singleInstanceLock) {
     dispatchProtocolUrl(url);
   });
 
-  if (process.platform !== 'win32') {
+  if (SUPPORTED_PLATFORMS.includes(process.platform)) {
+    void startWindowsApplication();
+  } else {
     app.whenReady().then(() => {
-      dialog.showErrorBox('Novaris Browser is Windows-only', 'Novaris Browser currently supports Windows 10/11 only.');
+      dialog.showErrorBox(
+        'Novaris Browser is not available here',
+        `Novaris Browser supports Windows 10/11 and Linux. This build is running on ${process.platform}, which is not supported.`,
+      );
       app.quit();
     });
-  } else {
-    void startWindowsApplication();
   }
 }
 
