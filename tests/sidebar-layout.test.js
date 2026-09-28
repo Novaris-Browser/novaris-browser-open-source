@@ -66,22 +66,32 @@ describe('Novaris split view: layout arithmetic', () => {
 describe('Novaris split view: choosing the second pane', () => {
   const web = (id) => ({ id, hasWebView: true, isInternalPage: false });
   const internal = { id: 'i', hasWebView: false, isInternalPage: true };
+  const newTab = { id: 'n', hasWebView: true, isNewTab: true, isInternalPage: false };
 
-  it('uses the active tab as the first pane and another as the second', () => {
+  // The pane that is already showing is the primary one, so the second pane is
+  // always a different tab. An earlier version preferred the active tab here,
+  // which meant a split could show the same page twice.
+  it('never picks the tab that is already the first pane', () => {
     const result = resolveSplitTab([web('a'), web('b'), web('c')], 'b');
     expect(result.ok).toBe(true);
-    expect(result.tabId).toBe('b');
-    expect(result.available).toEqual(['a', 'b', 'c']);
+    expect(result.tabId).toBe('a');
+    expect(result.available).toEqual(['a', 'c']);
   });
 
-  it('refuses when there is only one website tab', () => {
+  it('refuses when the only website tab is the one already showing', () => {
     expect(resolveSplitTab([web('a'), internal], 'a')).toMatchObject({ ok: false });
     expect(resolveSplitTab([web('a'), internal], 'a').reason).toMatch(/two website tabs/i);
   });
 
   it('refuses when there is no website tab at all', () => {
     expect(resolveSplitTab([internal], 'i')).toMatchObject({ ok: false });
-    expect(resolveSplitTab([], undefined).reason).toMatch(/open a website tab/i);
+    expect(resolveSplitTab([], undefined).reason).toMatch(/two website tabs/i);
+  });
+
+  it('does not offer a new tab as the second pane', () => {
+    const result = resolveSplitTab([web('a'), newTab], 'a');
+    expect(result.tabId).toBeUndefined();
+    expect(result.ok).toBe(false);
   });
 });
 

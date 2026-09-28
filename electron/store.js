@@ -20,6 +20,9 @@ const DEFAULT_SETTINGS = Object.freeze({
   performanceMode: 'balanced',
   gamingMode: false,
   backgroundThrottling: true,
+  // Audio from a tab you have switched away from keeps playing. Mute it if you
+  // would rather every background page stayed silent.
+  backgroundAudio: true,
   suspendBackgroundTabs: false,
   reducedMotion: false,
   clearOnExit: false,
@@ -125,6 +128,10 @@ function sanitizeSettings(current, patch = {}) {
     next.developerTools = Boolean(patch.developerTools);
   }
 
+  if (Object.prototype.hasOwnProperty.call(patch, 'backgroundAudio')) {
+    next.backgroundAudio = Boolean(patch.backgroundAudio);
+  }
+
   if (Object.prototype.hasOwnProperty.call(patch, 'hardwareAcceleration')) {
     next.hardwareAcceleration = Boolean(patch.hardwareAcceleration);
   }
@@ -162,6 +169,7 @@ function sanitizeSettings(current, patch = {}) {
     'defaultBrowserPrompted',
     'defaultBrowserRequested',
     'backgroundThrottling',
+    'backgroundAudio',
     'suspendBackgroundTabs',
     'gamingMode',
     'reducedMotion',

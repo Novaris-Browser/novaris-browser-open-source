@@ -102,6 +102,40 @@ export function useBrowser() {
   const [readerContent, setReaderContent] = useState(null);
   const [commandPaletteToken, setCommandPaletteToken] = useState(0);
   const [blockedSite, setBlockedSite] = useState(null);
+  // The second pane of a split view. The primary pane is always the active tab,
+  // so only the second one has to be remembered.
+  const [splitTabId, setSplitTabId] = useState('');
+
+  /**
+   * Puts a tab in the second pane, leaving the active tab where it is. This is
+   * what dragging a tab onto another tab does: the drop target keeps the primary
+   * pane, because the user aimed at it, and the dragged tab joins it.
+   */
+  const openSplitWith = useCallback((tabId) => {
+    if (!tabId || tabId === activeTabId) return;
+    setSplitTabId(tabId);
+  }, [activeTabId]);
+
+  const closeSplit = useCallback(() => setSplitTabId(''), []);
+
+  /** Swaps which tab is in which pane. */
+  const swapSplit = useCallback(() => {
+    setSplitTabId((current) => (current && current !== activeTabId ? activeTabId : current));
+  }, [activeTabId]);
+
+  // Closing the split's own tab would leave a pane pointing at nothing. A tab
+  // that stops being a website tab cannot be shown in a pane either.
+  useEffect(() => {
+    if (!splitTabId) return;
+    const target = tabs.find((tab) => tab.id === splitTabId);
+    if (!target || !target.hasWebView || target.isNewTab || target.isInternalPage) setSplitTabId('');
+  }, [tabs, splitTabId]);
+
+  // The primary and the secondary pane cannot be the same page.
+  useEffect(() => {
+    if (splitTabId && splitTabId === activeTabId) setSplitTabId('');
+  }, [activeTabId, splitTabId]);
+
   const [credentialThreat, setCredentialThreat] = useState(null);
   const [updateState, setUpdateState] = useState(null);
   const [updateSummary, setUpdateSummary] = useState(null);
@@ -1555,6 +1589,11 @@ export function useBrowser() {
     deleteWorkspaceById,
     moveTabToWorkspace,
     createTabGroup,
+    // Side-by-side view
+    splitTabId,
+    openSplitWith,
+    closeSplit,
+    swapSplit,
     renameTabGroup,
     deleteTabGroup,
     toggleTabGroup,

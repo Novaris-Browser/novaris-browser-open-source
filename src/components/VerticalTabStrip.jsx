@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronDown,
   ChevronRight,
+  Columns2,
   Copy,
   FolderPlus,
   LayoutGrid,
@@ -40,10 +41,10 @@ function TabPreview({ tab, position }) {
   );
 }
 
-function TabRow({ tab, active, dragging, onSelect, onClose, onDragStart, onDragOver, onDrop, onDragEnd, onHover, onLeave, onContextMenu }) {
+function TabRow({ tab, active, dragging, splitArmed, inSplit, onSelect, onClose, onDragStart, onDragOver, onDrop, onDragEnd, onHover, onLeave, onContextMenu, onDropForSplit }) {
   return (
     <div
-      className={`vtab${active ? ' is-active' : ''}${dragging ? ' is-dragging' : ''}${tab.pinned ? ' is-pinned' : ''}`}
+      className={`vtab${active ? ' is-active' : ''}${dragging ? ' is-dragging' : ''}${splitArmed ? ' is-split-armed' : ''}${inSplit ? ' is-in-split' : ''}${tab.pinned ? ' is-pinned' : ''}`}
       role="tab"
       aria-selected={active}
       draggable
@@ -66,6 +67,7 @@ function TabRow({ tab, active, dragging, onSelect, onClose, onDragStart, onDragO
     >
       {tab.favicon ? <img src={tab.favicon} alt="" className="vtab-favicon" /> : <span className="vtab-favicon vtab-favicon-fallback" />}
       <span className="vtab-title">{tab.title || 'New Tab'}</span>
+      {inSplit ? <Columns2 size={11} className="vtab-in-split" aria-label="In the side-by-side view" /> : null}
       {tab.muted ? <VolumeX size={11} className="vtab-muted" /> : null}
       <button
         className="vtab-close"
@@ -75,6 +77,17 @@ function TabRow({ tab, active, dragging, onSelect, onClose, onDragStart, onDragO
       >
         <X size={12} />
       </button>
+      {splitArmed ? (
+        <span
+          className="vtab-split-band"
+          role="button"
+          tabIndex={-1}
+          aria-label={`Open ${tab.title || 'this tab'} beside the one you are dragging`}
+          title="Drop here to open side by side"
+          onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = 'copy'; }}
+          onDrop={onDropForSplit}
+        />
+      ) : null}
     </div>
   );
 }
@@ -95,6 +108,9 @@ export default function VerticalTabStrip({
   onCreateWorkspace,
   onDeleteGroup,
   onDuplicateTab,
+  splitTabId = '',
+  onSplitWith = () => {},
+  onCloseSplit = () => {},
   onToggleMute,
   onMoveToWorkspace,
 }) {
@@ -218,15 +234,36 @@ export default function VerticalTabStrip({
                   tab={tab}
                   active={tab.id === activeTabId}
                   dragging={dragging === tab.id}
+                  // While a tab is being dragged, every other row grows a band on
+                  // its trailing edge. Dropping on the row reorders as it always
+                  // did; dropping on the band opens a side-by-side view, so the
+                  // two gestures never have to be guessed apart.
+                  splitArmed={Boolean(dragging) && dragging !== tab.id}
+                  inSplit={tab.id === splitTabId}
                   onSelect={onSelectTab}
                   onClose={onCloseTab}
                   onHover={startPreview}
                   onLeave={cancelPreview}
                   onContextMenu={(event, target) => { event.preventDefault(); setMenu({ type: 'tab', tab: target, x: event.clientX, y: event.clientY }); }}
-                  onDragStart={(event, tabId) => { event.dataTransfer.setData('text/novaris-tab', tabId); event.dataTransfer.effectAllowed = 'move'; setDragging(tabId); }}
-                  onDragOver={(event, tabId) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }}
+                  onDragStart={(event, tabId) => { event.dataTransfer.setData('text/novaris-tab', tabId); event.dataTransfer.effectAllowed = 'copyMove'; setDragging(tabId); }}
+                  onDragOver={(event, tabId) => { event.preventDefault(); event.dataTransfer.dropEffect = dragging && dragging !== tabId ? 'copy' : 'move'; }}
                   onDrop={(event, tabId) => handleDrop(event, tabId, tab.groupId || '')}
                   onDragEnd={() => { setDragging(''); cancelPreview(); }}
+                  onDropForSplit={(event, tabId) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const dragged = event.dataTransfer.getData('text/novaris-tab');
+                    if (dragged) {
+                      // The tab that was dropped onto is the one the user aimed
+                      // at, so it takes the primary pane. Without this the two
+                      // panes would show the dragged tab and whichever tab
+                      // happened to be active, and the target would appear
+                      // nowhere, which is not what dropping onto a tab implies.
+                      onSelectTab(tabId);
+                      onSplitWith(dragged);
+                    }
+                    setDragging('');
+                  }}
                 />
               ))}
             </div>
@@ -249,6 +286,18 @@ export default function VerticalTabStrip({
       {menu?.type === 'tab' && (
         <div className="vstrip-menu" style={{ top: menu.y, left: menu.x }} onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={() => { onDuplicateTab(menu.tab.id); setMenu(null); }}><Copy size={12} />Duplicate</button>
+          {menu.tab.id === splitTabId ? (
+            <button type="button" onClick={() => { onCloseSplit(); setMenu(null); }}><X size={12} />Close side-by-side</button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { onSplitWith(menu.tab.id); setMenu(null); }}
+              title={menu.tab.id === activeTabId ? 'The other pane shows this tab' : ''}
+            >
+              <Columns2 size={12} />
+              {menu.tab.id === activeTabId ? 'Focus this pane' : 'Open in split view'}
+            </button>
+          )}
           <button type="button" onClick={() => { onToggleMute(menu.tab.id); setMenu(null); }}>
             {menu.tab.muted ? <Volume2 size={12} /> : <VolumeX size={12} />}
             {menu.tab.muted ? 'Unmute tab' : 'Mute tab'}

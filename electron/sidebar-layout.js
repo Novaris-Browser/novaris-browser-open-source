@@ -106,16 +106,28 @@ function findApp(saved, id) {
 /**
  * The second pane of a split view is a tab, not a URL, so that a split keeps
  * working when the active tab navigates. The pane simply follows a tab id.
+ *
+ * primaryTabId is excluded outright: the second pane must not be the page the
+ * user is already looking at, or a split would show the same page twice and
+ * appear to do nothing. A new tab or a Novaris page is excluded too, since
+ * there is nothing to place beside one.
  */
-function resolveSplitTab(tabs = [], activeTabId) {
-  const candidates = tabs.filter((tab) => tab?.hasWebView && !tab.isInternalPage);
-  if (!candidates.length) return { ok: false, reason: 'Open a website tab to use a side-by-side view.' };
-  const chosen = candidates.find((tab) => tab.id === activeTabId) || candidates[0];
-  // The same tab cannot be in both panes, so pick the first different one.
-  if (candidates.length === 1) {
-    return { ok: false, reason: 'A side-by-side view needs two website tabs.' };
+function resolveSplitTab(tabs = [], primaryTabId = '') {
+  const candidates = tabs.filter(
+    (tab) => tab?.hasWebView && !tab.isNewTab && !tab.isInternalPage && tab.id !== primaryTabId,
+  );
+  if (!candidates.length) {
+    return {
+      ok: false,
+      reason: 'A side-by-side view needs two website tabs open.',
+      available: [],
+    };
   }
-  return { ok: true, tabId: chosen.id, available: candidates.map((tab) => tab.id) };
+  return {
+    ok: true,
+    tabId: candidates[0].id,
+    available: candidates.map((tab) => tab.id),
+  };
 }
 
 module.exports = {
