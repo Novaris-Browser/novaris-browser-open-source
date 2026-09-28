@@ -5,9 +5,9 @@
   "main": "electron/main.js",
   "author": {
     "name": "Novaris Browser",
-    "email": "noreply@novarisbrowser.example"
+    "email": "maintainer@novaris.example"
   },
-  "homepage": "https://novarisbrowser.example",
+  "homepage": "https://novaris-browser.github.io",
   "license": "MIT",
   "desktopName": "com.novaris.browser",
   "private": true,

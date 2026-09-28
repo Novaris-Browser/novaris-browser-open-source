@@ -11,10 +11,17 @@ window.NOVARIS_SITE = {
 
   /* The canonical origin. Used for canonical tags, the sitemap and structured
      data. Must be the real https origin in production, with no trailing slash. */
-  origin: 'https://novarisbrowser.example',
+  origin: 'https://novaris-browser.github.io',
 
-  /* Where published installers and the update manifest live. */
+  /* Where published installers and the update manifests live. electron-updater
+     reads a different manifest per platform, so the site reads both: latest.yml
+     is the Windows installer and latest-linux.yml is the Debian package. A
+     single feed would have shown a Windows version number next to a Linux
+     download button, which is the kind of small lie a release page should not
+     tell. */
   feed: 'https://updates.yladevs.com/latest.yml',
+  feedLinux: 'https://updates.yladevs.com/latest-linux.yml',
+  feedHost: 'https://updates.yladevs.com',
 
   /* ------------------------------------------------------------------------
      Google AdSense

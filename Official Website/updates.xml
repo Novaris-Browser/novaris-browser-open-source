@@ -9,14 +9,68 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Novaris Browser — updates</title>
-    <link>https://novarisbrowser.example/updates.xml</link>
-    <description>Release notes for Novaris Browser, a secure browser for Windows.</description>
+    <link>https://novaris-browser.github.io/updates.xml</link>
+    <description>Release notes for Novaris Browser, a secure browser for Windows and Linux.</description>
     <language>en-GB</language>
-    <atom:link href="https://novarisbrowser.example/updates.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://novaris-browser.github.io/updates.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>0.9.0 — Side-by-side view, a name for the new tab, background audio, Linux</title>
+      <link>https://novaris-browser.github.io/updates.html</link>
+      <guid isPermaLink="false">novaris-0.9.0</guid>
+      <pubDate>Mon, 28 Sep 2026 00:00:00 +0000</pubDate>
+      <description><![CDATA[
+        <p><strong>Side-by-side view.</strong> Up to four pages at once, built on the model
+        Zen Browser uses. Drag a tab out of the list and drop it on the left or right edge of
+        a page; the edge you are over lights up so there is no guessing. Drag the divider to
+        change the widths, or use the arrow keys. A pane can never be dragged below seven
+        percent of the window, because a page too narrow to read is worse than no split at
+        all, and a fifth pane is refused rather than becoming a sliver.</p>
+        <p><strong>Two bugs that were always there.</strong> The layout code had never been
+        connected to the interface, so the only part of the feature that reached anyone was
+        the sidebar app rail. Two faults were hiding inside it the whole time: it chose the
+        page already on screen as the second pane, so a split could show the same page
+        twice, and it did not exclude a new tab, which has nothing to place beside one.</p>
+        <p><strong>Your name.</strong> First-run setup asks what to call you, and the new tab
+        page greets you by it. The greeting is now the largest thing on the page, and it
+        covers the whole day including the night the old version had no word for at all.</p>
+        <p><strong>Audio that keeps playing.</strong> Switching tabs used to mute them. That
+        is now a setting, on by default, so music and calls carry on while you read something
+        else. Gaming Mode still silences everything.</p>
+        <p><strong>First-party ad scripts.</strong> Ad code served from the site's own server
+        is now blocked by its path as well as its host. Every rule is anchored to a path
+        separator, because matched as plain text "ads.js" would also block downloads.js,
+        uploads.js, leads.js and threads.js, and break download buttons across the web.</p>
+        <p><strong>Linux.</strong> A Debian package for Ubuntu, Debian and anything else that
+        installs .deb files, built on Linux rather than wrapped from Windows. The password
+        vault needs a real desktop keyring and will report itself unavailable rather than
+        fall back to an unencrypted store.</p>
+      ]]></description>
+    </item>
+
+    <item>
+      <title>0.8.2 — First-party ad scripts and a working filter exception</title>
+      <link>https://novaris-browser.github.io/updates.html</link>
+      <guid isPermaLink="false">novaris-0.8.2</guid>
+      <pubDate>Sun, 27 Sep 2026 00:00:00 +0000</pubDate>
+      <description><![CDATA[
+        <p><strong>First-party ad scripts.</strong> Ad code served from the site's own server
+        is now blocked by its path, not just by its host. Every rule is anchored to a path
+        separator so /js/ads.js is caught and /js/downloads.js is not.</p>
+        <p><strong>A filter exception that works.</strong> A rule of the form
+        ||example.com/some/path did nothing, because the parser read the path as part of the
+        domain name. That left no way to put one file back, which is exactly what is needed
+        when a rule goes too far.</p>
+        <p><strong>The signing build was broken.</strong> The code-signing settings had never
+        been validated and had been making every build fail. The hash algorithms and the
+        timestamp server were in the wrong place, one option no longer exists, and another had
+        been given values it does not accept.</p>
+      ]]></description>
+    </item>
 
     <item>
       <title>0.7.5 — Tab transfer, side panel, media controls, saved pages</title>
-      <link>https://novarisbrowser.example/index.html#updates</link>
+      <link>https://novaris-browser.github.io/updates.html</link>
       <guid isPermaLink="false">novaris-0.7.5</guid>
       <pubDate>Sun, 27 Sep 2026 00:00:00 +0000</pubDate>
       <description><![CDATA[

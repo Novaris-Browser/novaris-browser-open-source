@@ -50,4 +50,4 @@ Allow: /
 User-agent: Chrome-Lighthouse
 Allow: /
 
-Sitemap: https://novarisbrowser.example/sitemap.xml
+Sitemap: https://novaris-browser.github.io/sitemap.xml

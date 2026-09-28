@@ -13,15 +13,19 @@
 (function () {
   'use strict';
 
-  // Where the installer and its manifest are published. Changing this is the
-  // only thing needed to point the site at a different domain.
-  var FEED = 'https://updates.yladevs.com/latest.yml';
+  // Where the installers and their manifests are published. Changing this is the
+  // only thing needed to point the site at a different host. electron-updater
+  // writes a separate manifest per platform, so both are named here.
+  var SITE = window.NOVARIS_SITE || {};
+  var FEED = SITE.feed || 'https://updates.yladevs.com/latest.yml';
+  var FEED_LINUX = SITE.feedLinux || 'https://updates.yladevs.com/latest-linux.yml';
+  var FEED_HOST = SITE.feedHost || 'https://updates.yladevs.com';
   // The release the written content on this page describes. It is not assumed
   // to be the published one: the feed decides, and a mismatch is stated rather
   // than hidden.
-  var NOTES_VERSION = '0.7.5';
-  var FALLBACK_VERSION = '0.8.2';
-  var FALLBACK_BYTES = 114448042;
+  var NOTES_VERSION = '0.9.0';
+  var FALLBACK_VERSION = '0.9.0';
+  var FALLBACK_BYTES = 114455744;
 
   var $ = function (selector, root) { return (root || document).querySelector(selector); };
   var $$ = function (selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); };
@@ -99,7 +103,7 @@
   }
 
   function applyRelease(info) {
-    var downloadUrl = 'https://updates.yladevs.com/' + info.file;
+    var downloadUrl = FEED_HOST + '/' + info.file;
 
     $$('[data-download]').forEach(function (link) {
       link.setAttribute('href', downloadUrl);
@@ -137,6 +141,51 @@
     reconcile(info.version);
   }
 
+  /**
+   * The same, for the Debian package. Kept separate from the Windows path on
+   * purpose: a shared version number on both would be a claim that the Linux
+   * build is current when the bucket may only have the Windows one.
+   */
+  function applyReleaseLinux(info) {
+    var downloadUrl = FEED_HOST + '/' + info.file;
+
+    $$('[data-download-linux]').forEach(function (link) {
+      link.setAttribute('href', downloadUrl);
+      link.setAttribute('download', info.file);
+    });
+
+    if (info.size) {
+      $$('[data-size-linux]').forEach(function (node) { node.textContent = formatBytes(info.size); });
+    }
+
+    if (info.hash) {
+      $$('[data-hash-linux]').forEach(function (node) { node.textContent = info.hash; });
+    }
+
+    if (info.version) {
+      $$('[data-file-linux]').forEach(function (node) {
+        node.textContent = node.textContent.replace(/VERSION/g, info.version);
+      });
+    }
+
+    $$('[data-status-linux]').forEach(function (node) {
+      node.classList.remove('is-offline');
+      node.classList.add('is-current');
+      node.textContent = 'Published · ' + info.version;
+    });
+
+    $$('[data-status-note-linux]').forEach(function (node) {
+      node.textContent = 'free, no account';
+    });
+
+    document.documentElement.setAttribute('data-release-linux', info.version);
+    reconcile(info.version);
+  }
+
+  function applyFallbackLinux(reason) {
+    if (reason) console.info('Novaris site: no published Linux package could be read.', reason);
+  }
+
   function applyFallback(reason) {
     // The honest version of this: say the page could not confirm the feed,
     // rather than presenting the built-in numbers as if they were live.
@@ -163,14 +212,20 @@
     if (reason) console.info('Novaris site: using the built-in release details.', reason);
   }
 
-  function loadRelease() {
-    if (typeof fetch !== 'function') { applyFallback('fetch is unavailable'); return; }
+  /**
+   * Reads one manifest. electron-updater writes a separate one per platform, so
+   * Windows and Linux are fetched independently: a bucket that has published the
+   * Windows build but not the Linux one should still show the Windows details
+   * rather than falling back for both.
+   */
+  function fetchFeed(url, onOk, onFail) {
     // A short timeout, because a download page that hangs on a network call is
     // worse than one that shows what it knows.
     var controller = typeof AbortController === 'function' ? new AbortController() : null;
     var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+    var done = function () { if (timer) clearTimeout(timer); };
 
-    fetch(FEED, {
+    return fetch(url, {
       cache: 'no-store',
       signal: controller ? controller.signal : undefined,
     })
@@ -179,17 +234,29 @@
         return response.text();
       })
       .then(function (text) {
-        if (timer) clearTimeout(timer);
+        done();
         var info = parseFeed(text);
-        if (!info) { applyFallback('the feed did not contain a version'); return; }
-        applyRelease(info);
+        if (!info) { onFail(new Error('the feed did not contain a version')); return; }
+        onOk(info);
       })
       .catch(function (error) {
-        if (timer) clearTimeout(timer);
+        done();
         // The expected case: the feed is served from a bucket that may not send
         // CORS headers, so the browser blocks the read. The page still works.
-        applyFallback(error && error.message);
+        onFail(error);
       });
+  }
+
+  function loadRelease() {
+    if (typeof fetch !== 'function') { applyFallback('fetch is unavailable'); return; }
+    fetchFeed(FEED, applyRelease, function (error) { applyFallback(error && error.message); });
+    // The Linux manifest is additive. If it is missing the Windows page is
+    // unaffected, and the Linux buttons fall back on their own.
+    if (FEED_LINUX) {
+      fetchFeed(FEED_LINUX, applyReleaseLinux, function (error) {
+        applyFallbackLinux(error && error.message);
+      });
+    }
   }
 
   /* ---------------------------------------------------------------------
@@ -289,13 +356,17 @@
   }
 
   function wireCopy() {
-    var copyHash = $('[data-copy]');
-    if (copyHash) {
-      copyHash.addEventListener('click', function () {
-        var hash = ($('[data-hash]') || {}).textContent || '';
-        copyText(hash.trim(), 'Hash copied.');
+    // Each copy button names the element it copies, so the Windows and Linux
+    // hashes can both be on one page without either button taking the other.
+    var pairs = [['[data-copy]', '[data-hash]'], ['[data-copy-linux]', '[data-hash-linux]']];
+    pairs.forEach(function (pair) {
+      var button = $(pair[0]);
+      var target = $(pair[1]);
+      if (!button || !target) return;
+      button.addEventListener('click', function () {
+        copyText((target.textContent || '').trim(), 'Hash copied.');
       });
-    }
+    });
     // Every copy-code button, not just the first one on the page. Each reads its
     // own sibling at click time, so a command whose file name was filled in from
     // the live feed is copied with that name already substituted.

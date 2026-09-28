@@ -11,7 +11,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ORIGIN = 'https://novarisbrowser.example';
+
+// Read the origin from the same file the pages read it from, so the audit cannot
+// pass against a domain the site no longer uses. A hardcoded copy here silently
+// reported every page as unlisted the first time the real domain was set.
+const siteConfig = fs.readFileSync(path.join(root, 'js', 'config.js'), 'utf8');
+const originMatch = siteConfig.match(/origin:\s*'([^']+)'/);
+const ORIGIN = originMatch ? originMatch[1].replace(/\/+$/, '') : '';
+if (!ORIGIN) {
+  console.error('site audit: could not read origin from js/config.js');
+  process.exit(1);
+}
 
 const problems = [];
 const warnings = [];

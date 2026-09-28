@@ -135,7 +135,7 @@ if (dryRun) {
 // the published version, and updates break in the app for the same reason.
 const cors = [
   {
-    allowed_origins: ['https://updates.yladevs.com', 'https://novarisbrowser.example', 'https://localhost:5173'],
+    allowed_origins: ['https://updates.yladevs.com', 'https://novaris-browser.github.io', 'https://localhost:5173'],
     allowed_methods: ['GET', 'HEAD'],
     allowed_headers: ['*'],
     expose_headers: ['ETag', 'Content-Length', 'Content-Type'],

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release notes and updates | Novaris Browser</title>
+<meta name="description" content="Every Novaris Browser release, newest first. What changed in 0.9.0, 0.8.2, 0.7.5 and earlier, with the bugs each one actually fixed.">
+<meta name="keywords" content="Novaris Browser updates, Novaris Browser changelog, Novaris release notes, Novaris 0.9.0, what changed in Novaris">
+<meta name="robots" content="index, follow, max-snippet:-1">
+<meta name="theme-color" content="#04061c">
+<link rel="canonical" href="https://novaris-browser.github.io/updates.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Novaris Browser">
+<meta property="og:title" content="Release notes and updates | Novaris Browser">
+<meta property="og:description" content="What changed in each Novaris release, newest first, including the bugs that were fixed.">
+<meta property="og:url" content="https://novaris-browser.github.io/updates.html">
+<meta property="og:image" content="https://novaris-browser.github.io/assets/hero.jpg">
+<meta property="og:image:alt" content="The Novaris night sky over still water">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://novaris-browser.github.io/assets/hero.jpg">
+<link rel="alternate" type="application/rss+xml" title="Novaris Browser updates" href="updates.xml">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "url": "https://novaris-browser.github.io/updates.html",
+  "inLanguage": "en-GB",
+  "name": "Novaris Browser release notes",
+  "isPartOf": { "@id": "https://novaris-browser.github.io/#website" }
+}
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="shell">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="24" height="24"><span>NOVARIS</span></a>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="security.html">Security</a>
+      <a href="updates.html" aria-current="page">Updates</a>
+      <a href="donate.html">Donate</a>
+      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <section class="hero" style="padding-top:44px">
+    <span class="hero-eyebrow"><span class="dot"></span> Newest first</span>
+    <h1 style="font-size:clamp(2rem,4.6vw,3.1rem)">What changed</h1>
+    <p class="hero-lede">
+      Every release, and the bugs behind it. Where something was broken before and works
+      now, that is said plainly, because a changelog that only lists features is not much
+      use to anyone deciding whether to update.
+    </p>
+    <p style="margin-top:18px">
+      <a class="btn btn-primary" href="download.html">Download the current release</a>
+      <a class="btn" href="updates.xml" style="margin-left:8px">Subscribe by feed</a>
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="section-head reveal">
+      <h2>0.9.0 — side-by-side view, a name for the new tab</h2>
+      <p>Side-by-side view on the model Zen Browser uses, up to four panes. Setup asks what
+      to call you. Audio keeps playing in tabs you have switched away from.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">▥</span> Side-by-side view</h3>
+        <p>Up to four pages at once. Drag a tab out of the list and drop it on the left or
+        right edge of a page; the edge you are over lights up so there is no guessing which
+        side it will land on. Drag the divider to change the widths, and take any pane out
+        on its own.</p>
+        <p style="margin-top:10px">A pane can never be dragged below seven percent of the
+        window, because a page too narrow to read is worse than no split at all. A fifth
+        pane is refused with a reason rather than becoming a sliver.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">✻</span> Two bugs that were always there</h3>
+        <p>The layout code had never been connected to the interface, so the only part of
+        the feature that reached anyone was the sidebar app rail.</p>
+        <p style="margin-top:10px">Two faults were hiding inside it the whole time, and only
+        appeared once something actually called it: it chose the page already on screen as
+        the second pane, so a split could show the same page twice, and it did not exclude a
+        new tab, which has nothing to place beside one.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">☀</span> Good morning, and good night</h3>
+        <p>First-run setup now asks what to call you, and the new tab page greets you by
+        name. The greeting is the largest thing on the page.</p>
+        <p style="margin-top:10px">It also covers the whole day now. The old version had no
+        night at all, so anyone using the browser at eleven at night was told good evening.
+        It says good night before five and after ten.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">♪</span> Audio that keeps playing</h3>
+        <p>Switching tabs used to mute them. That is now a setting, on by default, so music
+        and calls carry on while you read something else.</p>
+        <p style="margin-top:10px">The webview stops throttling its timers to match, because
+        a throttled page stops producing audio and the setting would otherwise look broken.
+        Gaming Mode still silences everything, which is what it is for.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">✂</span> First-party ad scripts</h3>
+        <p>Ad code served from the site's own server is now blocked by its path, not just by
+        its host. That covers the ad script sitting next to the site's own code, which a
+        host-based blocker cannot see.</p>
+        <p style="margin-top:10px">Every rule is anchored to a path separator. Matched as
+        plain text, "ads.js" would also block downloads.js, uploads.js, leads.js and
+        threads.js, which would break download buttons, upload widgets and comments across a
+        large part of the web.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">⚿</span> A filter exception that works</h3>
+        <p>A filter of the form <code>||example.com/some/path</code> did nothing, because the
+        parser read the path as part of the domain name and could never match. That left no
+        way to put one file back, which is exactly what is needed when a rule goes too far.
+        Host-and-path rules now work for both blocking and allowing.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">⊞</span> Linux</h3>
+        <p>A Debian package for Ubuntu, Debian and anything else that installs
+        <code>.deb</code> files, built on Linux rather than wrapped from Windows. It is
+        published under its own update manifest, since each platform has its own.</p>
+        <p style="margin-top:10px">The password vault will not store anything on Linux
+        unless the desktop provides a real keyring such as GNOME Keyring or KWallet. It
+        refuses to fall back to an unencrypted store, so a machine with no keyring reports
+        the vault as unavailable rather than pretending to be protected.</p>
+      </article>
+
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">✓</span> Verifying a download</h3>
+        <p>The published hash is Base64, and the command on the download page used to print
+        it in hex. The two could never match, which meant a genuine, untampered file looked
+        exactly like a tampered one.</p>
+        <p style="margin-top:10px">The command now converts, the file name is filled in
+        from the live feed rather than typed in, and both copy buttons work instead of only
+        the first.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head reveal">
+      <h2>0.8.2 — first-party ad scripts and a working filter exception</h2>
+      <p>The path-based ad blocking above, plus the filter parser fix, plus a build
+      configuration bug that would have broken every release.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">⚑</span> The signing build was broken</h3>
+        <p>The code-signing settings had never been validated, and had sat in the build
+        configuration making every build fail. Hash algorithms and the timestamp server
+        were in the wrong place, one option no longer exists, and another had been given
+        values it does not accept.</p>
+        <p style="margin-top:10px">That last one mattered: the values used confused the
+        signature digest with the download hash published in the update feed, which are
+        unrelated things.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head reveal">
+      <h2>0.7.5 — tab transfer, side panel, media controls, saved pages</h2>
+      <p>The largest release so far.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">⇄</span> Tab transfer, device to device</h3>
+        <p>Send a tab to another device on your local network with no server, no account, and
+        nothing hosted anywhere. The tab is encrypted on the sending PC with AES-256-GCM
+        before it moves, a 100-bit pairing code authorises the transfer, and only local
+        addresses can be reached.</p>
+      </article>
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">▦</span> Side panel apps</h3>
+        <p>Discord, YouTube, Spotify, Canvas, Mail and a Notes scratchpad stay open beside
+        your tabs, each in its own sandboxed view. Only the app you are looking at is
+        loaded.</p>
+      </article>
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">▶</span> Media controls and picture in picture</h3>
+        <p>A control bar for whatever the page is playing, with picture-in-picture that works
+        from any site. The page is the source of truth, so a playlist advancing on its own is
+        followed rather than fought.</p>
+      </article>
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">❐</span> Vertical tabs and workspaces</h3>
+        <p>Tabs down the left, grouped, with drag to reorder, search across all open tabs,
+        hover preview, and a right-click menu. Workspaces keep separate sets of tabs for
+        separate jobs.</p>
+      </article>
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">◈</span> Privacy</h3>
+        <p>Local phishing detection that sends nothing off the device, the Website Trust Card
+        that says what a site can see and who is trying to track you, private windows, and
+        Gaming Mode that suspends what you are not using.</p>
+      </article>
+      <article class="card glass reveal">
+        <h3><span class="card-icon" aria-hidden="true">▤</span> Saved pages</h3>
+        <p>Keep an article to read without a connection, in a sandbox with no script
+        execution, carrying the address and the time it was taken. Pages asking you to sign
+        in are refused rather than saved.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card glass reveal">
+      <h3>Still ahead of this build</h3>
+      <p>Passkeys can be created but not yet used, because Electron draws no account chooser
+      for the assertion. A real certificate would remove the "Unknown publisher" warning, and
+      would still not remove the SmartScreen message, which depends on downloads rather than
+      on signing. A WebRTC limitation is described in full on the FAQ and the home page
+      rather than being left out of the notes.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="shell site-footer">
+  <div class="footer-grid">
+    <div>
+      <h4>Novaris</h4>
+      <p>A browser that says what it does and does not do.</p>
+    </div>
+    <div>
+      <h4>Pages</h4>
+      <a href="index.html">Home</a>
+      <a href="download.html">Download</a>
+      <a href="updates.html">Updates</a>
+      <a href="security.html">Security</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <a href="privacy.html">Privacy</a>
+      <a href="cookies.html">Cookies</a>
+      <a href="terms.html">Terms</a>
+      <a href="donate.html">Donate</a>
+    </div>
+  </div>
+  <p class="footer-note">Free, no account, no telemetry from the application.</p>
+</footer>
+
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+
+<aside class="consent glass" data-consent hidden role="dialog" aria-live="polite" aria-label="Cookie and advertising choices">
+  <p>
+    <strong>This site uses advertising cookies.</strong> With your permission, Google AdSense
+    and its partners will set cookies to measure ads and, where you allow it, personalise them.
+    No advertising script is loaded and no advertising cookie is set until you choose to allow it.
+    Read the <a href="cookies.html">cookie policy</a> and
+    <a href="why-ads.html">why this site carries advertising</a>.
+  </p>
+  <p class="consent-note">Your choice is stored in this browser only, using local storage rather than a cookie, and is never sent anywhere.</p>
+  <div class="consent-actions">
+    <button class="btn btn-primary btn-sm" type="button" data-consent-accept>Allow advertising</button>
+    <button class="btn btn-sm" type="button" data-consent-reject>Decline</button>
+    <a class="btn btn-sm" href="privacy.html">Read the privacy statement</a>
+  </div>
+</aside>
+
+<script src="js/config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/ads.js" defer></script>
+</body>
+</html>

@@ -8,25 +8,25 @@
 <meta name="keywords" content="Novaris Browser FAQ, is Novaris safe, does Novaris phone home, Chrome extension support, is Novaris free, private browsing">
 <meta name="robots" content="index, follow, max-snippet:-1">
 <meta name="theme-color" content="#04061c">
-<link rel="canonical" href="https://novarisbrowser.example/faq.html">
+<link rel="canonical" href="https://novaris-browser.github.io/faq.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Novaris Browser">
 <meta property="og:title" content="Frequently Asked Questions | Novaris Browser">
 <meta property="og:description" content="What it is, what it blocks, where your passwords go, and what it cannot do.">
-<meta property="og:url" content="https://novarisbrowser.example/faq.html">
-<meta property="og:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta property="og:url" content="https://novaris-browser.github.io/faq.html">
+<meta property="og:image" content="https://novaris-browser.github.io/assets/hero.jpg">
 <meta property="og:image:alt" content="The Novaris night sky over still water">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://novarisbrowser.example/assets/hero.jpg">
+<meta name="twitter:image" content="https://novaris-browser.github.io/assets/hero.jpg">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/styles.css">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "url": "https://novarisbrowser.example/faq.html",
+  "url": "https://novaris-browser.github.io/faq.html",
   "inLanguage": "en-GB",
-  "isPartOf": { "@id": "https://novarisbrowser.example/#website" },
+  "isPartOf": { "@id": "https://novaris-browser.github.io/#website" },
   "mainEntity": [
     { "@type": "Question", "name": "Is Novaris really Chrome, or a rebrand of it?",
       "acceptedAnswer": { "@type": "Answer", "text": "It uses Chromium, the same rendering engine Chrome is built on. What Novaris changes is everything around the engine: which requests are allowed, what is stored, and what a site is told. Saying it is Chromium is honest; claiming to be Chrome would not be." } },
@@ -47,7 +47,7 @@
     { "@type": "Question", "name": "What can still see me?",
       "acceptedAnswer": { "@type": "Answer", "text": "A site that configures a STUN server can obtain your public IP address through WebRTC with no permission prompt, and Chromium's own switches do not prevent it. Blocking is usually effective at hiding your local network address. This is stated in full on the limits page." } },
     { "@type": "Question", "name": "Does it work on Mac or Linux?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not yet. Novaris is Windows-only, and parts of it depend on Windows cryptography and the Windows vault, so a Mac or Linux build would be a different piece of work rather than a recompile." } }
+      "acceptedAnswer": { "@type": "Answer", "text": "On Linux, yes, from 0.9.0. There is a Debian package for Ubuntu, Debian and anything else that installs .deb files, built on Linux rather than wrapped from Windows. One thing differs: the password vault needs a real desktop keyring such as GNOME Keyring or KWallet, and will report itself unavailable rather than fall back to an unencrypted store. There is no Mac build." } }
   ]
 }
 </script>
@@ -66,7 +66,7 @@
       <a href="security.html">Security</a>
       <a href="why-ads.html">Why ads</a>
       <a href="donate.html">Donate</a>
-      <a class="btn btn-sm btn-primary" href="download.html">Download</a>
+      <a href="updates.html">Updates</a><a class="btn btn-sm btn-primary" href="download.html">Download</a>
     </div>
   </nav>
 </header>
@@ -230,9 +230,20 @@
       <details class="glass reveal">
         <summary>Does it work on Mac or Linux?</summary>
         <p>
-          Not yet. Novaris is Windows-only. Parts of it depend on Windows cryptography and
-          the Windows credential store, so a Mac or Linux version would be a different
-          project rather than a recompile, and we would rather do one thing properly.
+          On Linux, yes, from 0.9.0. There is a Debian package for Ubuntu, Debian and
+          anything else that installs <code>.deb</code> files, and it is built on Linux rather
+          than wrapped from the Windows one.
+        </p>
+        <p>
+          One thing behaves differently. The password vault on Windows is protected by
+          DPAPI, part of Windows itself. Linux has no single equivalent, so Novaris uses
+          whichever desktop keyring is present, GNOME Keyring or KWallet. If there is no
+          real keyring, the vault reports itself unavailable and refuses to store anything,
+          rather than quietly falling back to a store that only looks encrypted. Everything
+          else in the browser works the same on both.
+        </p>
+        <p>
+          There is no Mac build.
         </p>
       </details>
 
