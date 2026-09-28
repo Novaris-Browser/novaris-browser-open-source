@@ -17,6 +17,18 @@ release-signing-test/
 *.p7b
 *.p7c
 
+# The update signing key. The public half is committed on purpose, at
+# assets/update-public-key.pem, because the application has to verify with it.
+# The private half must never be in the repository: it is the only thing that
+# can sign a release, and anyone holding it could offer a malicious update to
+# every installation. The real one is written to ~/.novaris by
+# scripts/create-update-key.mjs.
+update-signing-key.pem
+*-private-key.pem
+*update-signing*.pem
+!assets/update-public-key.pem
+.env*
+
 # Local environments and secrets. Nothing in this project needs a committed
 # key, and the vault and profile are per-machine, so these must never be added.
 .env

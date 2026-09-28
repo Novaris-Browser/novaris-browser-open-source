@@ -17,6 +17,7 @@ const { mediaPublisherSource, isAllowedMediaAction, clampSeek } = require('./med
 const { canSave, assessCapture, buildOfflineDocument, isAcceptableSize, listOfflinePages, offlineUrlFor } = require('./offline-pages');
 const { sealPayload, openPayload, tabPayload } = require('./tab-transfer');
 const { TransferSender, receiveFrom, localAddresses, DEFAULT_PORT } = require('./tab-transfer-node');
+const { guardIpcListener } = require('./ipc-guard');
 
 // Pulls readable content out of a page. Only text and markup are taken, scripts
 // and interactive parts are stripped, and the decision about whether the result
@@ -59,9 +60,16 @@ function buildFillScript(record) {
   })()`;
 }
 
-function registerIpcHandlers({ app, getWindow, store, vault, extensionManager, adblockManager, siteSafetyManager, windowsIntegration, openPrivateWindow, updateManager, resetSummary, scheduleReset, relaunch }) {
+function registerIpcHandlers({ app, getWindow, appRoot = '', store, vault, extensionManager, adblockManager, siteSafetyManager, windowsIntegration, openPrivateWindow, updateManager, resetSummary, scheduleReset, relaunch }) {
+  // Every channel goes through here, which is the only place that has to be
+  // right. A listener is only reached by the application's own renderer: not by
+  // a webview page, not by an iframe, and not by anything loaded from a URL the
+  // project did not build.
   const handle = (channel, listener) => {
-    ipcMain.handle(channel, listener);
+    ipcMain.handle(channel, guardIpcListener(listener, {
+      appRoot,
+      devServerUrl: process.env.VITE_DEV_SERVER_URL || '',
+    }));
   };
 
   handle('bootstrap:get', () => ({

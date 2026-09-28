@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const { readPublicKey, verifyManifest } = require('./update-signing');
 const path = require('node:path');
 const { app } = require('electron');
 
@@ -143,6 +144,51 @@ class UpdateManager {
     return autoUpdater;
   }
 
+  /**
+   * Fetches the manifest and checks its signature before anything else happens.
+   *
+   * This runs ahead of electron-updater rather than alongside it, on purpose.
+   * If the manifest is not signed by the key inside this build, the updater is
+   * never asked to look at it, so a substituted URL, a swapped hash or an
+   * injected release note cannot reach the download stage. The certificate on the
+   * installer says who built it; this says who published it, and they are
+   * different questions.
+   */
+  async verifyFeedSignature() {
+    const feedUrl = resolveFeedUrl();
+    if (!feedUrl) return { ok: false, reason: 'No update channel is configured for this build.' };
+
+    let publicKey = '';
+    try {
+      const keyPath = path.join(app.getAppPath(), 'assets', 'update-public-key.pem');
+      publicKey = readPublicKey(keyPath);
+    } catch {
+      return { ok: false, reason: 'This build carries no update signing key, so the feed cannot be trusted.' };
+    }
+    if (!publicKey) {
+      return { ok: false, reason: 'The bundled update signing key is empty.' };
+    }
+
+    // electron-updater reads a different manifest per platform.
+    const manifestName = process.platform === 'linux' ? 'latest-linux.yml' : 'latest.yml';
+    let text = '';
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      const response = await fetch(`${feedUrl}/${manifestName}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!response.ok) return { ok: false, reason: `The update feed returned HTTP ${response.status}.` };
+      text = await response.text();
+    } catch (error) {
+      return { ok: false, reason: `The update feed could not be read: ${String(error?.message || error)}` };
+    }
+
+    return verifyManifest(text, publicKey);
+  }
+
   async check() {
     if (!this.isPackaged()) {
       return this.patch({ status: 'unavailable', error: 'Updates are only checked in an installed build.' });
@@ -153,9 +199,23 @@ class UpdateManager {
         error: 'No update channel is configured for this build.',
       });
     }
+
+    // Verify first. An unverified feed is not a slow update, it is a rejected one.
+    this.patch({ status: 'checking', error: '', checkedAt: Date.now() });
+    const verdict = await this.verifyFeedSignature();
+    this.signatureVerified = verdict.ok;
+    if (!verdict.ok) {
+      this.patch({
+        status: 'error',
+        error: `The update was refused: ${verdict.reason}`,
+        signatureVerified: false,
+      });
+      return this.state;
+    }
+
     const autoUpdater = this.loadUpdater();
     if (!autoUpdater) return this.state;
-    this.patch({ status: 'checking', error: '', checkedAt: Date.now() });
+    this.patch({ status: 'checking', error: '', checkedAt: Date.now(), signatureVerified: true });
     try {
       await autoUpdater.checkForUpdates();
     } catch (error) {

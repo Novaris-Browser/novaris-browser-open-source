@@ -1,7 +1,8 @@
 const path = require('node:path');
 const { app, BrowserWindow, Menu, dialog, session } = require('electron');
 const { JsonStore } = require('./store');
-const { installSecurityHandlers } = require('./security');
+const { installSecurityHandlers, classifyPermission, isSecureOrigin } = require('./security');
+const { buildCsp, cspHeaders } = require('./csp');
 const { installDownloadManager, PERSISTENT_PARTITION } = require('./downloads');
 const { registerIpcHandlers } = require('./ipc');
 const { installExitPrivacy } = require('./privacy');
@@ -173,8 +174,14 @@ function permissionAllowed(store, webContents, permission, requestingOrigin, det
   // Gaming Mode refuses these outright, before any site permission is consulted,
   // so a page cannot prompt for them mid-game.
   if (isPermissionForcedDenied(permission, store.snapshot().settings)) return false;
+  // A permission Novaris never grants is refused regardless of what the user
+  // allowed for that site. A site permission is not a wildcard.
+  if (classifyPermission(permission) === 'denied') return false;
   const origin = permissionOrigin(webContents, requestingOrigin, details);
   if (!origin) return false;
+  // Nothing worth granting is handed to a page served over plain http, where the
+  // connection and the page itself can both be altered by whoever is on the path.
+  if (!isSecureOrigin(origin)) return false;
   const policy = store.snapshot().sitePermissions[origin] || {};
   if (permission === 'media') {
     const mediaTypes = details?.mediaTypes || (details?.mediaType ? [details.mediaType] : ['video']);
@@ -184,24 +191,75 @@ function permissionAllowed(store, webContents, permission, requestingOrigin, det
     });
   }
   const key = permissionKey(permission);
+  // An unrecognised permission has no key, so this is false. A permission
+  // Chromium adds in a future version is therefore refused by default rather
+  // than being handed out because nobody wrote it down.
   return Boolean(key && policy[key] === 'allow');
 }
 
-function denySensitivePermissions(store) {
-  const browserSessions = new Set([
-    session.defaultSession,
-    session.fromPartition(PERSISTENT_PARTITION),
-  ]);
-  for (const browserSession of browserSessions) {
-    browserSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
-      callback(permissionAllowed(store, webContents, permission, '', details));
-    });
-    browserSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => permissionAllowed(store, webContents, permission, requestingOrigin, details));
+/**
+ * Applies the deny-by-default permission policy to a session.
+ *
+ * Called for every session the application creates, not just the two obvious
+ * ones. A private window uses a random partition, so before this listened for
+ * session-created those windows had no handler at all and fell back to the
+ * platform default, which is to allow.
+ */
+function installPermissionPolicy(store, browserSession) {
+  if (!browserSession || browserSession.__novarisPermissionPolicy) return;
+  browserSession.__novarisPermissionPolicy = true;
+  browserSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    callback(permissionAllowed(store, webContents, permission, '', details));
+  });
+  browserSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => (
+    permissionAllowed(store, webContents, permission, requestingOrigin, details)
+  ));
+  // Hardware access is never granted. A browser has no feature that needs it, and
+  // it is the first thing anything malicious asks for.
+  if (typeof browserSession.setDevicePermissionHandler === 'function') {
+    browserSession.setDevicePermissionHandler(() => false);
   }
 }
 
-function startWindowsApplication() {
-  return app.whenReady().then(async () => {
+function denySensitivePermissions(store) {
+  const install = (browserSession) => installPermissionPolicy(store, browserSession);
+  install(session.defaultSession);
+  install(session.fromPartition(PERSISTENT_PARTITION));
+  // Everything created later, which is every private window and any extension
+  // session. Without this a private window gets no policy at all.
+  app.on('session-created', (_event, created) => install(created));
+}
+
+/**
+ * Puts the policy on every response the interface itself makes.
+ *
+ * The built application carries the policy in a meta tag, which is weaker: it
+ * only applies once the document has begun to load. The development server is a
+ * real HTTP origin, so the policy is also sent as a header there, which is
+ * applied before anything is parsed.
+ *
+ * Only the interface's own session is touched. A webview page runs under that
+ * page's own policy, which is the correct arrangement: a site is entitled to
+ * load its own resources, and intercepting that would break most of the web.
+ */
+function installContentSecurityPolicy() {
+  const devServerUrl = process.env.VITE_DEV_SERVER_URL || '';
+  const policy = buildCsp({ development: Boolean(devServerUrl), devServerUrl });
+  const headers = cspHeaders(policy);
+  const target = session.fromPartition(PERSISTENT_PARTITION);
+  if (typeof target.webRequest?.onHeadersReceived === 'function') {
+    target.webRequest.onHeadersReceived((details, callback) => {
+      const isOurInterface = details.url.startsWith('http://127.0.0.1:5173')
+        || details.url.startsWith('http://localhost:5173')
+        || details.url.startsWith('file://');
+      if (!isOurInterface) { callback({}); return; }
+      callback({ responseHeaders: { ...(details.responseHeaders || {}), ...headers } });
+    });
+  }
+  return policy;
+}
+
+function startWindowsApplication() {  return app.whenReady().then(async () => {
     app.setAppUserModelId('com.novaris.browser');
     appRoot = path.resolve(app.getAppPath());
     vault = new Vault(path.join(app.getPath('userData'), 'novaris-vault.bin'));
@@ -223,6 +281,7 @@ function startWindowsApplication() {
     windowsIntegration = installGlobalHotkey({ app, getWindow, getSettings: () => store.snapshot().settings });
     Menu.setApplicationMenu(null);
     denySensitivePermissions(store);
+    installContentSecurityPolicy();
     installSecurityHandlers({
       getWindow,
       appRoot,
@@ -240,6 +299,7 @@ function startWindowsApplication() {
     registerIpcHandlers({
       app,
       getWindow,
+      appRoot,
       store,
       vault,
       extensionManager,

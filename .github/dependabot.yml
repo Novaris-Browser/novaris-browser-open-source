@@ -1,0 +1,54 @@
+version: 2
+
+updates:
+  # Security fixes only are treated as urgent. Everything else waits for a
+  # release, because a patch applied the same day it appears is how a browser
+  # ends up shipping a broken update to everyone at once.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'build'
+    labels:
+      - dependencies
+    groups:
+      electron: # Electron releases are quarterly and need reading, not just taking
+        applies-to: version-updates
+        patterns:
+          - 'electron'
+          - 'electron-builder'
+          - 'electron-updater'
+      react:
+        applies-to: version-updates
+        patterns:
+          - 'react'
+          - 'react-dom'
+      testing:
+        applies-to: version-updates
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+    commit-message:
+      prefix: 'build'
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Chromium carries the bulk of the security surface, and its advisories are
+    # published without a version bump sometimes, so a digest is needed as well
+      # as an alert.
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: 'deps'
+    labels:
+      - dependencies

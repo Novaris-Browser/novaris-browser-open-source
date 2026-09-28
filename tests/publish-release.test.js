@@ -4,10 +4,15 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createRequire } from 'node:module';
 
 const projectRoot = process.cwd();
 const script = path.join(projectRoot, 'scripts', 'publish-release.mjs');
 const realVersion = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')).version;
+// The publisher imports the signing module from the project root, so the fixture
+// has to provide it.
+const require = createRequire(import.meta.url);
+const { generateKeyPair, writePublicKey } = require('../electron/update-signing.js');
 
 let dir = '';
 
@@ -23,12 +28,27 @@ function makeProject({
   windows = true,
   linux = false,
   tamper = null,
+  signed = true,
 } = {}) {
   const release = path.join(dir, 'release');
   const built = manifestVersion || packageVersion;
   fs.mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'electron'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
   fs.mkdirSync(release, { recursive: true });
   fs.copyFileSync(script, path.join(dir, 'scripts', 'publish-release.mjs'));
+  // The publisher imports it as ../electron/update-signing.js, so it has to sit
+  // in the same relative place inside the fixture.
+  fs.copyFileSync(
+    path.join(process.cwd(), 'electron', 'update-signing.js'),
+    path.join(dir, 'electron', 'update-signing.js'),
+  );
+  // The publisher refuses to run without a public key, and requires the
+  // manifests to carry a valid signature, so the fixture has to be able to
+  // produce one. A throwaway key per test keeps them independent.
+  const { generateKeyPair, writePublicKey, signManifest } = require('../electron/update-signing.js');
+  const { publicKeyPem, privateKeyPem } = generateKeyPair();
+  writePublicKey(path.join(dir, 'assets', 'update-public-key.pem'), publicKeyPem);
   fs.writeFileSync(
     path.join(dir, 'package.json'),
     JSON.stringify({ name: 'novaris-browser', version: packageVersion }),
@@ -39,7 +59,10 @@ function makeProject({
   const manifestFor = (name, url, bytes) => {
     const size = bytes.length;
     const sha512 = crypto.createHash('sha512').update(bytes).digest('base64');
-    return `version: ${built}\nfiles:\n  - url: ${url}\n    sha512: ${sha512}\n    size: ${size}\npath: ${url}\nsha512: ${sha512}\nreleaseDate: '2026-01-01T00:00:00.000Z'\n`;
+    const text = `version: ${built}\nfiles:\n  - url: ${url}\n    sha512: ${sha512}\n    size: ${size}\npath: ${url}\nsha512: ${sha512}\nreleaseDate: '2026-01-01T00:00:00.000Z'\n`;
+    // Signed after the fact, so the signed bytes are the final ones. A manifest
+    // that is edited afterwards no longer verifies, which is the point.
+    return signed ? signManifest(text, privateKeyPem) : text;
   };
 
   if (windows) {
@@ -143,12 +166,54 @@ describe('release publishing safety rules', () => {
 
   it('refuses when no manifest has been built', () => {
     fs.mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+    fs.mkdirSync(path.join(dir, 'electron'), { recursive: true });
+    fs.mkdirSync(path.join(dir, 'assets'), { recursive: true });
     fs.copyFileSync(script, path.join(dir, 'scripts', 'publish-release.mjs'));
+    fs.copyFileSync(
+      path.join(process.cwd(), 'electron', 'update-signing.js'),
+      path.join(dir, 'electron', 'update-signing.js'),
+    );
+    const { publicKeyPem } = generateKeyPair();
+    writePublicKey(path.join(dir, 'assets', 'update-public-key.pem'), publicKeyPem);
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ version: realVersion }));
     fs.mkdirSync(path.join(dir, 'release'));
     const { code, out } = run();
     expect(code).not.toBe(0);
     expect(out).toMatch(/Run a build first/);
+  });
+
+  // A manifest the updater will refuse is worse than no release: the user is
+  // told an update exists and then cannot install it.
+  it('refuses to publish an unsigned manifest', () => {
+    makeProject({ windows: true, signed: false });
+    const { code, out } = run();
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/is not signed/);
+    expect(out).toMatch(/sign-update-manifests/);
+  });
+
+  it('refuses a manifest edited after it was signed', () => {
+    const release = makeProject({ windows: true, signed: true });
+    const manifest = path.join(release, 'latest.yml');
+    // The realistic attack: the file is signed at build time and altered in the
+    // bucket, or in transit. The field chosen here is one no other rule looks
+    // at, so the signature is the only thing that can catch it.
+    fs.writeFileSync(manifest, fs.readFileSync(manifest, 'utf8').replace("releaseDate: '2026-01-01T00:00:00.000Z'", "releaseDate: '2099-01-01T00:00:00.000Z'"), 'utf8');
+    const { code, out } = run();
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/is not signed/);
+  });
+
+  // A file list swapped for another, which is the attack that matters: the user
+  // is sent somewhere else entirely.
+  it('refuses a manifest whose file list was swapped after signing', () => {
+    const release = makeProject({ windows: true, signed: true });
+    const manifest = path.join(release, 'latest.yml');
+    fs.writeFileSync(manifest, fs.readFileSync(manifest, 'utf8').replace('Novaris-Browser-x-Setup.exe', 'other.exe'), 'utf8');
+    const { code, out } = run();
+    expect(code).not.toBe(0);
+    // Whichever rule catches it first, it must not be published.
+    expect(out).toMatch(/is not signed|missing from release/);
   });
 
   it('explains the bucket requirement rather than failing obscurely', () => {

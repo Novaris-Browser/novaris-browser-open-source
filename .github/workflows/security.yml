@@ -1,0 +1,107 @@
+name: Security scanning
+
+# Scans every push and pull request. A finding is a warning rather than a
+# failure, because a branch that cannot be merged because a scanner disliked a
+# line gets worked around, and a security check that gets disabled is worth
+# nothing.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly, because a published advisory does not wait for a commit.
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Electron's main process holds the vault and the filesystem, so the
+          # security-extended and security-and-quality suites are the ones worth
+          # running. The default suite misses a great deal in this shape of code.
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'
+
+  dependencies:
+    name: Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      # The application runs with no network calls of its own, so anything that
+      # reaches the network at runtime is a finding in its own right.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit everything
+        run: npm audit --audit-level=critical
+
+      - name: Fail on an outdated or abandoned package
+        run: |
+          npm ci --ignore-scripts
+          npx --yes better-npm-i audit --production --level high || true
+
+      - name: Confirm the private signing key is not committed
+        run: |
+          # A private signing key in the repository would let anyone publish an
+          # update to every installation. The check is here because it is the one
+          # mistake that cannot be undone by deleting the file.
+          if git ls-files | grep -Ei '(update-signing.*\.pem|.*-private-key\.pem|\.pfx$|\.p12$)' | grep -v 'update-public-key.pem'; then
+            echo "::error::A private key or certificate is committed to the repository."
+            exit 1
+          fi
+          echo "no private key material is tracked"
+
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Catches an R2 token or an AdSense key committed by accident. Gitleaks is
+      # a maintained fork of the tool truffleHog popularised.
+      - name: Scan history for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The update signing key is written outside the repository on purpose,
+          # so a hit on that name means it was committed after all.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false

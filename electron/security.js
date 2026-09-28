@@ -170,7 +170,133 @@ function installSecurityHandlers({
   });
 }
 
+/**
+ * Permissions a page may hold, and the conditions.
+ *
+ * The default is no. A permission is granted only when the user has said yes for
+ * that specific site, and the two that are granted outright are the ones a page
+ * cannot do anything interesting with on its own. Everything else is refused at
+ * the session level rather than left to the page's own request flow, because a
+ * prompt a page can influence is not much of a prompt.
+ */
+const ALWAYS_DENIED = new Set([
+  // A browser cannot meaningfully use these, and they are the ones malware
+  // asks for. There is no Novaris feature behind any of them, and no site
+  // permission can override this list.
+  //
+  // geolocation and midi used to appear here as well as below, with a comment
+  // saying they were grantable per site. The deny list is checked first, so they
+  // were simply never grantable and the comment was the only thing that
+  // suggested otherwise. They belong in the list below, where a stored
+  // per-site decision can allow them.
+  'openExternal',
+  'hid',
+  'serial',
+  'usb',
+  'mediaKeySystem',
+  'midiSysex',
+  'pointerLock',
+  'fullscreen',    // handled by the window, not the page
+  'window-management',
+  'speaker-selection',
+  'top-level-storage-access',
+]);
+
+// Never granted implicitly. A site can ask, and the user can allow it for that
+// site, but nothing is granted without a stored decision and a secure origin.
+const ASKS_FIRST = new Set([
+  'geolocation',
+  'midi',
+  'notifications',
+  'camera',
+  'microphone',
+  'clipboard-read',
+  'clipboard-sanitized-write',
+  'display-capture',
+  'background-sync',
+  'persistent-storage',
+  'idle-detection',
+  'window-placement',
+]);
+
+/**
+ * Is this permission one Novaris will ever grant?
+ *
+ * A permission outside both lists is refused. A new Chromium permission is not
+ * something the browser should start handing out because nobody enumerated it.
+ */
+function classifyPermission(permission) {
+  const name = String(permission || '').trim();
+  if (!name) return 'unknown';
+  if (ALWAYS_DENIED.has(name)) return 'denied';
+  if (ASKS_FIRST.has(name)) return 'ask';
+  // 'media', 'display-capture' variants and anything Chromium adds later.
+  if (name.startsWith('media') || name.startsWith('clipboard')) return 'ask';
+  return 'unknown';
+}
+
+function isGrantablePermission(permission) {
+  const kind = classifyPermission(permission);
+  return kind === 'ask' || kind === 'allowed';
+}
+
+/**
+ * Installs the deny-by-default handlers on a session.
+ *
+ * getSitePermission is consulted for anything that needs asking. Returning
+ * undefined for an unknown site means the answer is no, not yes.
+ */
+function installPermissionIsolation(target, { getSitePermission = () => undefined, onBlocked = null } = {}) {
+  const decide = (permission, requestingUrl) => {
+    if (!isGrantablePermission(permission)) {
+      onBlocked?.(permission, requestingUrl, 'not a permission Novaris grants');
+      return false;
+    }
+    // Only secure origins may hold a permission worth granting.
+    if (!isSecureOrigin(requestingUrl)) {
+      onBlocked?.(permission, requestingUrl, 'the page is not served over https');
+      return false;
+    }
+    const stored = getSitePermission(requestingUrl, permission);
+    const allowed = stored === 'allow' || stored === true;
+    if (!allowed) onBlocked?.(permission, requestingUrl, 'the user has not allowed it for this site');
+    return allowed;
+  };
+
+  if (typeof target.setPermissionRequestHandler === 'function') {
+    target.setPermissionRequestHandler((contents, permission, callback, details) => {
+      callback(decide(permission, details?.requestingUrl || details?.mediaTypes?.[0] || ''));
+    });
+  }
+  if (typeof target.setPermissionCheckHandler === 'function') {
+    target.setPermissionCheckHandler((contents, permission, requestingOrigin) => {
+      return decide(permission, requestingOrigin);
+    });
+  }
+  if (typeof target.setDevicePermissionHandler === 'function') {
+    target.setDevicePermissionHandler(() => false);
+  }
+}
+
+function isSecureOrigin(value) {
+  try {
+    const parsed = new URL(String(value));
+    if (parsed.protocol === 'https:') return true;
+    // Loopback counts as secure, which is what the platform considers it.
+    if (parsed.protocol === 'http:' && /^(localhost|127\.0\.0\.1|\[::1\])$/i.test(parsed.hostname)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
+  ALWAYS_DENIED,
+  ASKS_FIRST,
+  classifyPermission,
+  installPermissionIsolation,
+  isGrantablePermission,
+  isSecureOrigin,
   installSecurityHandlers,
   isAllowedGuestNavigation,
   isHttpUrl,

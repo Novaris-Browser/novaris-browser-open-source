@@ -25,7 +25,8 @@
     "dist:win": "npm run build && electron-builder --win && node scripts/write-release-notes.mjs",
     "dist:linux": "bash scripts/build-linux.sh",
     "publish:check": "node scripts/publish-release.mjs --dry-run",
-    "publish": "node scripts/publish-release.mjs"
+    "publish:sign": "node scripts/sign-update-manifests.mjs",
+    "publish": "node scripts/sign-update-manifests.mjs && node scripts/publish-release.mjs"
   },
   "dependencies": {
     "electron-updater": "^6.8.9",

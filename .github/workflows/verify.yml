@@ -1,0 +1,116 @@
+name: Verify
+
+# The checks that must pass before anything is published. Kept separate from the
+# security scanning because a failure here is about the change, not about a
+# scanner's opinion of it, and the two need to be readable independently.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests, build and site
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build the renderer
+        run: npm run build
+
+      - name: Audit the website
+        # Exits non-zero on an error, and treats a warning as one too, because
+        # every warning it raised was a real problem last time it was read.
+        run: node "Official Website/tools/site-audit.mjs"
+
+      - name: Check the build config
+        # Validates the electron-builder configuration against its schema, which
+        # is how a misplaced key is caught here rather than ten minutes into a
+        # package build.
+        run: node --input-type=module -e "
+          import fs from 'node:fs';
+          const schema = JSON.parse(fs.readFileSync('node_modules/app-builder-lib/scheme.json','utf8'));
+          const build = JSON.parse(fs.readFileSync('package.json','utf8')).build;
+          const sets = {
+            linux: new Set(Object.keys(schema.definitions.LinuxConfiguration.properties)),
+            deb: new Set(Object.keys(schema.definitions.DebOptions.properties)),
+            win: new Set(Object.keys(schema.definitions.WinConfiguration.properties)),
+            signtoolOptions: new Set(Object.keys(schema.definitions.WindowsSigntoolConfiguration.properties)),
+            nsis: new Set(Object.keys(schema.definitions.NsisOptions.properties)),
+          };
+          const bad = [];
+          for (const [key, set] of Object.entries(sets)) {
+            for (const name of Object.keys(build[key] || {})) if (!set.has(name)) bad.push(key + '.' + name);
+          }
+          if (bad.length) { console.error('invalid build keys: ' + bad.join(', ')); process.exit(1); }
+          console.log('build configuration valid');
+        "
+
+      - name: Check the update signing key is present
+        run: |
+          # The public half has to be committed: without it every installed build
+          # refuses every update.
+          test -s assets/update-public-key.pem || { echo "::error::assets/update-public-key.pem is missing"; exit 1; }
+          echo "public update key present"
+
+  package-windows:
+    name: Package (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: Build the installer
+        run: npm run dist:win
+
+      - name: Check the artifact against its manifest
+        # Recomputing the hash is the only check that proves the published file
+        # is the one the manifest describes.
+        shell: pwsh
+        run: |
+          $manifest = Get-Content release\latest.yml -Raw
+          $declared = ([regex]::Match($manifest, '(?m)^sha512:\s*(\S+)')).Groups[1].Value
+          $name = ([regex]::Match($manifest, '(?m)^\s*-?\s*url:\s*(\S+)')).Groups[1].Value
+          $bytes = [IO.File]::ReadAllBytes((Resolve-Path "release\$name"))
+          $actual = [Convert]::ToBase64String([Security.Cryptography.SHA512]::Create().ComputeHash($bytes))
+          if ($actual -ne $declared) { Write-Error "The installer does not match latest.yml"; exit 1 }
+          Write-Output "installer matches the manifest"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: novaris-windows-installer
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
+          retention-days: 14

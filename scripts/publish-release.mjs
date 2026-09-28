@@ -1,9 +1,14 @@
 // Publishes a built release to Cloudflare R2 and then proves it arrived intact.
 //
-// Three things this will not do, because each has bitten a real release:
+// Four things this will not do, because each has bitten a real release:
 //   * upload a file whose hash disagrees with its manifest
 //   * publish a manifest for a version that is not the one in package.json
 //   * report success without re-reading the object back from the bucket
+//   * publish a manifest that is not signed with the project's update key
+//
+// The last one matters most. The updater verifies the manifest signature before
+// it will act on it, so an unsigned upload is a release that every existing
+// installation refuses. Stopping here is better than publishing one.
 //
 // Requires: npx wrangler logged in, and R2_BUCKET set to the bucket name.
 //
@@ -47,6 +52,20 @@ const fail = (message) => {
   console.error(`\n  ${message}\n`);
   process.exit(1);
 };
+
+const { verifyManifest, readPublicKey } = await import('../electron/update-signing.js');
+
+const publicKey = (() => {
+  try {
+    return readPublicKey(path.join(root, 'assets', 'update-public-key.pem'));
+  } catch {
+    return '';
+  }
+})();
+
+if (!publicKey) {
+  fail('No update signing key at assets/update-public-key.pem. Create one with:  node scripts/create-update-key.mjs');
+}
 
 function run(args, options = {}) {
   return execFileSync('npx', ['wrangler', ...args], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, ...options });
@@ -124,6 +143,20 @@ for (const item of uploads) {
   console.log(`    ${mark} ${item.name}  ${size.toLocaleString()} bytes${expected ? '  (verified against manifest)' : ''}`);
   if (!sizeOk) fail(`${item.name} is ${size} bytes but the manifest says ${expected.size}.`);
   if (!hashOk) fail(`${item.name} does not match the SHA-512 in the manifest. Do not publish.`);
+}
+
+// A manifest the updater will refuse is worse than no release at all, because
+// the user is told an update exists and then cannot install it. Checked before
+// the dry run exits, so the problem is reported by the command people run first.
+console.log('\n  signature');
+for (const manifest of [windows, linux].filter(Boolean)) {
+  const verdict = verifyManifest(fs.readFileSync(manifest.file, 'utf8'), publicKey);
+  if (verdict.ok) {
+    console.log(`    ok    ${path.basename(manifest.file)} carries a valid signature`);
+  } else {
+    fail(`${path.basename(manifest.file)} is not signed: ${verdict.reason}
+  Run:  node scripts/sign-update-manifests.mjs`);
+  }
 }
 
 if (dryRun) {
