@@ -70,7 +70,7 @@
         }
       ],
       "artifactName": "Novaris-Browser-${version}-Setup.${ext}",
-      "verifyUpdateCodeSignature": true,
+      "verifyUpdateCodeSignature": false,
       "signtoolOptions": {
         "signingHashAlgorithms": [
           "sha256"

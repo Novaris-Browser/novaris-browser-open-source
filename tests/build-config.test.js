@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -95,6 +96,32 @@ describe('Novaris build configuration', () => {
   // A Debian package is required to name a maintainer with a contact address, and
   // electron-builder refuses to package without one. It only surfaces after
   // Electron has been downloaded and unpacked, so it is checked here instead.
+  // electron-updater's NsisUpdater.verifySignature() reads publisherName from
+  // app-update.yml and returns null when it is absent, which skips the check
+  // entirely. So verifyUpdateCodeSignature on its own is a silent no-op: the
+  // project would claim to verify update signatures while verifying none.
+  // publisherName is the signing certificate's own Distinguished Name, so it
+  // cannot be set until a certificate exists. Flip both together, never one.
+  it('never enables update signature verification without a publisher name', () => {
+    const verify = build.win?.verifyUpdateCodeSignature;
+    const publisher = build.win?.signtoolOptions?.publisherName;
+    if (verify) {
+      expect(publisher).toBeTruthy();
+    } else {
+      // Off with no name is the honest current state: no certificate yet.
+      expect(publisher).toBeUndefined();
+    }
+  });
+
+  it('has an update manifest that can be checked for a publisher name', () => {
+    // If this file ever grows a publisherName, the flag above must be on too.
+    const built = 'release/win-unpacked/resources/app-update.yml';
+    if (!fs.existsSync(built)) return; // only present after a Windows build
+    const text = fs.readFileSync(built, 'utf8');
+    const hasPublisher = /^publisherName:/m.test(text);
+    if (hasPublisher) expect(build.win.verifyUpdateCodeSignature).toBe(true);
+  });
+
   it('carries the maintainer metadata a .deb requires', () => {
     expect(typeof pkg.author).toBe('object');
     expect(pkg.author.name).toBeTruthy();

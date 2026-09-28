@@ -2,8 +2,20 @@
 node_modules/
 dist/
 release/
+release-signing-test/
 .vite/
 *.tsbuildinfo
+
+# Signing material. A .pfx must never reach the repository, and a signed build
+# produced with a throwaway certificate must never be mistaken for a release.
+*.pfx
+*.p12
+*.cer
+*.pvk
+*.key
+*.spc
+*.p7b
+*.p7c
 
 # Local environments and secrets. Nothing in this project needs a committed
 # key, and the vault and profile are per-machine, so these must never be added.
