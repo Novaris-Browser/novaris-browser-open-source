@@ -26,8 +26,6 @@ release-signing-test/
 update-signing-key.pem
 *-private-key.pem
 *update-signing*.pem
-!assets/update-public-key.pem
-.env*
 
 # Local environments and secrets. Nothing in this project needs a committed
 # key, and the vault and profile are per-machine, so these must never be added.
@@ -41,6 +39,12 @@ update-signing-key.pem
 *.keystore
 novaris-data.json
 novaris-vault.bin
+
+# The one key that must be tracked. Git applies the last matching rule, so this
+# has to come after the *.pem above rather than before it: placed earlier it was
+# silently overridden, the public key was never committed, and a fresh clone would
+# have produced a build with no key that refuses every update.
+!assets/update-public-key.pem
 novaris-data.json.*
 novaris-vault.bin.*
 

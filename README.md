@@ -1,59 +1,78 @@
-# Novaris Browser for Windows
+# Novaris Browser
 
-Novaris Browser is a functional Windows desktop browser built with Electron, Chromium, React, and Vite. It uses a macOS-inspired liquid-glass interface without copying Apple assets or proprietary UI resources.
+Novaris Browser is a desktop browser for Windows and Linux, built with Electron,
+Chromium, React and Vite. It uses a macOS-inspired liquid-glass interface without
+copying Apple assets or proprietary UI resources.
 
-The browser shell is not a webpage mockup: websites render inside isolated Chromium `<webview>` surfaces with JavaScript, HTTPS, cookies, local storage, page navigation, downloads, and a built-in Windows-encrypted credential vault.
+The browser shell is not a webpage mockup: websites render inside isolated Chromium
+`<webview>` surfaces with JavaScript, HTTPS, cookies, local storage, page
+navigation, downloads, and a credential vault sealed by the operating system.
+
+**Start with [SECURITY.md](SECURITY.md).** It describes every boundary, how it is
+enforced, and where it does not hold. `docs/` has the architecture, the privacy
+position, the testing approach and the release process.
 
 ## What it does now
 
 Everything below was built and verified against the packaged application, not just
 against a developer's build. The full measurements are in the
-[official site](Official%20Website/) and in `docs/`.
+[official site](Official%20Website/) and in [`docs/`](docs/).
 
 | Area | What it does |
 | --- | --- |
-| **Tabs** | Vertical tab strip, drag to reorder or move between groups, hover preview, search across every open tab, and a right-click menu for duplicate, mute, close, and move. |
+| **Tabs** | Vertical tab strip, drag to reorder or move between groups, hover preview, search across every open tab, and a right-click menu for duplicate, mute, close, split and move. |
 | **Workspaces** | A top-level container holding groups, groups holding tabs, and tabs optionally loose. Deleting either keeps the contents rather than destroying work. |
-| **Ad blocking** | Blocks at the network layer, before the request leaves the machine, so the destination never learns you visited the page. Three tiers, custom filters, and a live counter. |
+| **Split view** | Up to four pages at once. Drag a tab onto the left or right edge of a page and the edge lights up; drag the divider to change the widths; take any pane out on its own. A pane is never narrower than the point where a page becomes unreadable. |
+| **Ad blocking** | Blocks at the network layer, before the request leaves the machine, so the destination never learns you visited the page. Host rules and first-party path rules, three tiers, custom filters, and a live counter. |
 | **Unsafe sites** | Reported scam, fraud and malware hosts are stopped before load, with the reason shown. Blocking is always against the exact host, never the hosting platform. |
-| **Vault** | Each credential sealed individually with AES-256-GCM under an Argon2id key, bound to its own record id, and layered over Windows encryption at rest. A hard lock with no bypass. |
+| **Vault** | Each credential sealed individually with AES-256-GCM under an Argon2id key, bound to its own record id, and layered over the operating system keyring. A hard lock with no bypass, and no recovery for anyone. |
 | **Credential guard** | A saved login is only ever filled into the host it was saved for, and a page imitating a known sign-in provider raises a warning first. |
 | **Website Trust Card** | Per-site panel: encryption, granted permissions, which extensions can read the page, ads stopped, and a local phishing verdict with its reasons. |
 | **Phishing detection** | Entirely on-device. Catches lookalike characters, digit substitution, internationalised domains, and real brands parked in front of another address. |
 | **Private windows** | A separate window on non-persistent storage with its own random partition, so nothing survives closing it and two private windows cannot see each other. |
 | **Gaming Mode** | Unloads inactive tabs rather than hiding them, refuses notifications, and stops the spellchecker. The cost is stated in the interface. |
 | **Side panel** | Discord, YouTube, Spotify, Canvas, Mail and a Notes scratchpad beside the tabs. Only the open app is loaded. |
-| **Split view** | Two pages side by side, refused rather than squeezed when the reading column would get too narrow. |
 | **Media controls** | Transport, seek, volume and picture-in-picture for whatever the page is playing. Only a fixed command set can be sent to a page. |
+| **Background audio** | Music and calls carry on in tabs you have switched away from, and a tab can be dropped into a split without stopping. Off by choice, on by default. |
 | **Saved pages** | Offline reading from a sandboxed capture that carries the address and time it was taken, and refuses pages that would not save usefully. |
 | **Tab transfer** | Device to device on the local network with no server. Encrypted before it moves, authorised by a 100-bit pairing code. |
-| **Updates** | Ask first, show the size, verify a published SHA-512, then install. No forced updates. |
+| **Updates** | Ask first, show the size, verify the manifest signature and a published SHA-512, then install. No forced updates. |
+| **Security** | IPC sender validation, a `default-src 'none'` policy with Trusted Types, deny-by-default permissions on every session including private windows, and CodeQL with dependency scanning on every push. |
 
 ### What it does not do
 
 Listed because a security product that only lists its wins is misleading. The
-detail is on the site's limits section and in `docs/`.
+detail is on the site's limits section, in [`docs/`](docs/) and in
+[SECURITY.md](SECURITY.md).
 
+- **The installer is not signed.** No certificate, so Windows shows "Unknown
+  publisher" and SmartScreen shows its warning. The build is configured to sign
+  and the pipeline is proved working; it takes a certificate, not more code. A
+  certificate would not remove the SmartScreen warning either — that comes from
+  downloads over time.
 - **A site can still learn your public IP address** through WebRTC if it configures a
   STUN server, with no permission prompt. Chromium's own switches were tested three
-  ways and none of them prevented it, so the feature that claimed otherwise was
-  removed rather than shipped.
+  ways and none of them prevented it, so there is an explicit setting instead of a
+  claim it does not meet.
 - **Chrome Web Store installs are not available.** Google exposes no install API to
   third-party browsers. Novaris detects Manifest V3 extensions, warns before you
   install, and labels them afterwards so nothing silently does nothing.
-- **Passkeys can be created but not yet used.** Registration into Windows Hello works;
-  signing in needs an account chooser that Electron does not draw.
+- **Passkeys can be created but not yet used.** Registration works; signing in needs
+  an account chooser that Electron does not draw.
 - **Phishing detection reads the address, not a reputation.** A new malicious domain
   with an unusual name can still get through.
 - **Tab transfer needs both devices on one network.** There is no relay, so there is
   no server to run.
+- **There is no crash reporting.** By design, and it also means crashes are invisible
+  to us.
 
 ## Official website
 
 A static site lives in [`Official Website/`](Official%20Website/). No build step, no
-framework, and no third-party requests. It carries a download page, the release
-notes, and the legal pages, and it reads the live update feed so it reports the
-version and hash that are genuinely published.
+framework, and no third-party requests until a visitor accepts advertising. It
+carries a download page for both platforms, a changelog, the release feed, and
+the legal pages, and it reads the live update feeds so it reports the version and
+hash that are genuinely published.
 
 ```bash
 # From inside Official Website/
@@ -62,7 +81,21 @@ node tools/site-audit.mjs
 
 That audit checks metadata, canonicals, link targets, heading order, alt text,
 structured data and the sitemap against the files on disk, and exits non-zero on
-error so it can gate a deploy.
+error so it can gate a deploy. It reads the origin from `js/config.js`, the same
+file the pages read it from, so a renamed domain cannot leave the audit passing
+against an address the site no longer uses.
+
+## Documentation
+
+| Document | What it covers |
+| --- | --- |
+| [SECURITY.md](SECURITY.md) | The security model. Start here. |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Processes, module layout, and why the boundaries fall where they do. |
+| [`docs/PRIVACY.md`](docs/PRIVACY.md) | What is stored, what leaves the device, what was measured, and what still sees you. |
+| [`docs/UPDATES.md`](docs/UPDATES.md) | The update channel, release signing, and what a user can verify. |
+| [`docs/PUBLISHING.md`](docs/PUBLISHING.md) | Publishing a release, and the checks that stop a broken one going out. |
+| [`docs/TESTING.md`](docs/TESTING.md) | What is tested, what is proved rather than asserted, and what is not covered. |
+| [`docs/ENGINE-MIGRATION.md`](docs/ENGINE-MIGRATION.md) | Moving away from Chromium. |
 
 ## Windows-first architecture
 
@@ -102,14 +135,34 @@ Novaris Browser/
 └── package.json
 ```
 
-Novaris intentionally exits with an explanatory Windows-only message on macOS and Linux. The production package is configured only for Windows x64 NSIS installers.
+Two packages are produced: an NSIS installer for Windows x64, and a Debian package
+for Linux x64. The Linux build is produced on Linux rather than cross-compiled,
+because electron-builder cannot build it from Windows.
+
+```bash
+# Windows
+npm run dist:win
+
+# Linux, from WSL
+npm run dist:linux
+```
+
+Novaris exits with an explanatory message on any other platform, which is macOS.
 
 ### Process boundaries
 
 - **Main process:** owns the BrowserWindow, Chromium sessions, navigation policy, downloads, performance policies, persistent metadata, and encrypted vault.
-- **Preload bridge:** exposes named operations through `contextBridge`; the renderer cannot access Node.js, raw `ipcRenderer`, arbitrary IPC channels, or the filesystem.
-- **Renderer:** React owns the browser shell, tabs, internal pages, settings, and user interface.
+- **Preload bridge:** exposes named operations through `contextBridge`; the renderer cannot access Node.js, raw `ipcRenderer`, arbitrary IPC channels, or the filesystem. Every channel is additionally checked for sender, frame and origin before it runs.
+- **Renderer:** React owns the browser shell, tabs, internal pages, settings, and user interface, under a `default-src 'none'` policy with Trusted Types required.
 - **Page webviews:** `nodeIntegration=false`, `contextIsolation=true`, `sandbox=true`, and `webSecurity=true` are enforced in the webview attributes and the main-process attach policy.
+
+### What each package ships
+
+`build.files` is an allowlist: `dist/`, `electron/`, `assets/` and `package.json`.
+Nothing else is packaged. `tests/packaging.test.js` walks every relative `require`
+in `electron/` and asserts it resolves inside that allowlist, because a module
+once ended up under `src/`, where the tests and the bundler both resolved it and
+the packaged application did not ship it.
 
 ## Engine migration spike
 
@@ -117,12 +170,17 @@ The current Electron/Chromium build remains the supported application. A non-des
 
 ## Requirements
 
-- Windows 10 or Windows 11
-- Node.js 20.19 or newer (Node 24 is supported)
-- npm 10 or newer
-- A network connection for the first dependency install and for browsing websites
+**To run:** Windows 10 or 11, or Linux x64 with a desktop keyring if you want the
+password vault. Everything else in the browser works without one, and the vault
+reports itself unavailable rather than falling back to an unencrypted store.
 
-Novaris is currently a Windows-only application. The source still uses standard Electron APIs, but macOS/Linux packaging and runtime support are not advertised or configured.
+**To build:** Node.js 20.19 or newer (Node 24 is supported), npm 10 or newer, and
+a network connection for the first dependency install. The Linux package
+additionally needs WSL with a Node 24 toolchain, or any Linux x64 machine.
+
+There is no macOS build. The source uses standard Electron APIs throughout, and
+the platform guard would be the only thing to change, but nothing has been
+packaged or tested there.
 
 ## Install
 
