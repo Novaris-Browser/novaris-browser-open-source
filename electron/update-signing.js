@@ -152,6 +152,140 @@ function verifyManifest(manifestText, publicKeyPem) {
   return { ok: true, reason: '' };
 }
 
+// The shape an update manifest has to have, checked after the signature has
+// already passed.
+//
+// A signature only proves the manifest was published by whoever holds the key.
+// It does not prove the manifest says anything sensible. A correctly signed
+// manifest with no version, no digest, or a download URL pointing at plain HTTP
+// would otherwise be handed straight to electron-updater, which trusts the
+// metadata it is given. Publishing is restricted to the maintainer, so this is
+// not the interesting threat on its own, but "signed" should not quietly mean
+// "well formed" as well, and a manifest that has been truncated in transit is
+// exactly the case where failing closed is right.
+
+const VERSION_PATTERN = /^\d+(\.\d+){0,3}([-+][0-9A-Za-z.-]+)*$/;
+
+/** A SHA-512 digest as base64: exactly 64 bytes, canonically encoded. */
+function isSha512Base64(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  try {
+    const bytes = Buffer.from(text, 'base64');
+    return bytes.length === 64 && bytes.toString('base64') === text;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Is this somewhere an update may be downloaded from?
+ *
+ * A bare filename is relative and is resolved against the configured feed, which
+ * is the only way the manifests are written. Anything with a scheme must be
+ * HTTPS. A protocol-relative or backslash URL is refused rather than guessed at.
+ */
+function isAcceptableArtifactUrl(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:/.test(text)) return /^https:/i.test(text);
+  if (text.startsWith('//')) return false;
+  if (text.includes('\\')) return false;
+  return true;
+}
+
+/**
+ * Reads the fields that sit at the start of a line, which is what makes a field
+ * top level. Indented lines are skipped, and that is what keeps the block-scalar
+ * release notes out of the parse: their content is indented by definition.
+ */
+function readTopLevelFields(text) {
+  const fields = new Map();
+  for (const line of String(text).split(/\r?\n/)) {
+    if (/^[ \t]/.test(line) || !line.trim()) continue;
+    const match = line.match(/^([A-Za-z0-9_-]+):[ \t]*(.*)$/);
+    if (match && !fields.has(match[1])) {
+      fields.set(match[1], match[2].trim().replace(/^['"]|['"]$/g, ''));
+    }
+  }
+  return fields;
+}
+
+/**
+ * Reads the `files:` list and nothing else.
+ *
+ * Scoped to the block on purpose. Searching the whole document for `url:` would
+ * find a bullet inside the release notes, and a release note that happened to
+ * mention a URL would then be validated as if it were the download.
+ */
+function readFileEntries(text) {
+  const lines = String(text).split(/\r?\n/);
+  const start = lines.findIndex((line) => /^files:[ \t]*$/.test(line));
+  if (start === -1) return [];
+
+  const entries = [];
+  let current = null;
+  for (let i = start + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    // A line back at column zero ends the block.
+    if (!/^[ \t]/.test(line)) break;
+    const item = line.match(/^[ \t]*-[ \t]*([A-Za-z0-9_-]+):[ \t]*(.*)$/);
+    if (item) {
+      current = {};
+      entries.push(current);
+      current[item[1]] = item[2].trim();
+      continue;
+    }
+    const field = line.match(/^[ \t]+([A-Za-z0-9_-]+):[ \t]*(.*)$/);
+    if (field && current) current[field[1]] = field[2].trim();
+  }
+  return entries;
+}
+
+/**
+ * Rejects a manifest that is signed but not usable.
+ *
+ * Returns { ok, reason }, and a refusal is always a refusal: the caller must not
+ * fall back to downloading something less trustworthy than what it asked for.
+ */
+function validateManifestShape(manifestText) {
+  const text = String(manifestText || '');
+  if (!text.trim()) return { ok: false, reason: 'The update manifest is empty.' };
+
+  const fields = readTopLevelFields(text);
+  const version = fields.get('version') || '';
+  if (!VERSION_PATTERN.test(version)) {
+    return { ok: false, reason: 'The update manifest names no usable version.' };
+  }
+
+  const entries = readFileEntries(text);
+  if (!entries.length) {
+    return { ok: false, reason: 'The update manifest lists no download.' };
+  }
+
+  for (const entry of entries) {
+    const url = entry.url || '';
+    if (!isAcceptableArtifactUrl(url)) {
+      return { ok: false, reason: `Refusing a download that is not over HTTPS: ${url.slice(0, 80)}` };
+    }
+    if (!isSha512Base64(entry.sha512)) {
+      return { ok: false, reason: `The manifest entry for ${url.slice(0, 80)} carries no SHA-512 digest.` };
+    }
+    if (!Number.isFinite(Number(entry.size)) || Number(entry.size) <= 0) {
+      return { ok: false, reason: `The manifest entry for ${url.slice(0, 80)} carries no size.` };
+    }
+  }
+
+  // The top-level digest is the one electron-updater compares against for the
+  // single-file path, so it is required as well as the per-file ones.
+  if (!isSha512Base64(fields.get('sha512'))) {
+    return { ok: false, reason: 'The update manifest carries no top-level SHA-512 digest.' };
+  }
+
+  return { ok: true, reason: '' };
+}
+
 /** The public half, written as a file the application bundles. */
 function writePublicKey(targetPath, publicKeyPem) {
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });
@@ -175,11 +309,16 @@ module.exports = {
   SIGNATURE_BYTES,
   decodeSignatureStrict,
   generateKeyPair,
+  isAcceptableArtifactUrl,
+  isSha512Base64,
+  readFileEntries,
   readPublicKey,
   readSignature,
+  readTopLevelFields,
   sign,
   signManifest,
   unsignedBody,
+  validateManifestShape,
   verify,
   verifyManifest,
   writePublicKey,

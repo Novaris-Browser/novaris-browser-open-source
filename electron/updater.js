@@ -1,5 +1,5 @@
 const fs = require('node:fs');
-const { readPublicKey, verifyManifest } = require('./update-signing');
+const { readPublicKey, validateManifestShape, verifyManifest } = require('./update-signing');
 const path = require('node:path');
 const { app } = require('electron');
 
@@ -60,6 +60,8 @@ class UpdateManager {
     this.getUserDataPath = getUserDataPath || (() => app.getPath('userData'));
     this.onStateChange = onStateChange || (() => {});
     this.autoUpdater = null;
+    // Set only by a feed that verified. Nothing may download before it is true.
+    this.signatureVerified = false;
     this.state = {
       status: 'idle',
       configured: Boolean(resolveFeedUrl()),
@@ -186,7 +188,16 @@ class UpdateManager {
       return { ok: false, reason: `The update feed could not be read: ${String(error?.message || error)}` };
     }
 
-    return verifyManifest(text, publicKey);
+    const signed = verifyManifest(text, publicKey);
+    if (!signed.ok) return signed;
+
+    // Signed is not the same as well formed. A manifest that carries no digest,
+    // or a download over plain HTTP, is refused here rather than handed to
+    // electron-updater, which would treat the metadata as authoritative.
+    const shape = validateManifestShape(text);
+    if (!shape.ok) return shape;
+
+    return { ok: true, reason: '' };
   }
 
   async check() {
@@ -227,6 +238,15 @@ class UpdateManager {
   async download() {
     const autoUpdater = this.loadUpdater();
     if (!autoUpdater) return this.state;
+    // Reaching here without a verified feed would mean something set the version
+    // by another route. The download does not start, and the reason is reported
+    // rather than a connection being opened first and judged later.
+    if (this.signatureVerified !== true) {
+      return this.patch({
+        status: 'error',
+        error: 'The update was refused: the feed has not been verified for this session.',
+      });
+    }
     if (compareVersions(this.state.availableVersion, this.state.currentVersion) <= 0) {
       return this.patch({ status: 'current', error: '' });
     }

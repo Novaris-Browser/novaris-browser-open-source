@@ -30,7 +30,11 @@ place since an earlier commit and would have failed every build.
 | The signing pipeline works | A throwaway self-signed certificate through a full build. The installer and both binaries sign, with an RFC 3161 timestamp from a real responder. |
 | Trusted Types is enforced | The packaged build. Assigning `innerHTML` throws. |
 | IPC validation does not break the interface | The packaged build. A real `getBootstrap` call through the guard returns the version and settings. |
+| A website in a private window has no privileged bridge | The real application, a real private window, a real site loaded in it. Read back from the page: no `novaris`, no `ipcRenderer`, no `require`, no `process`, no `module`. |
+| The interface cannot navigate itself to a website | The real application. `location.href = 'https://example.com'` from the interface; the window is still on `dist/index.html` afterwards, and its bridge still works. |
+| A private window is denied geolocation, camera and notifications | The real application, with real permission *requests* from the page rather than `navigator.permissions.query`, which reads Blink's own default and does not pass through the handler. Notifications resolve to `denied`, geolocation to `PERMISSION_DENIED`, the camera to `NotAllowedError`. |
 | Update signatures stop a tampered manifest | Signing a real manifest, then altering the version, the hash, the size, the URL and the signature in turn. Each is refused; the genuine one is accepted. |
+| A signed but malformed manifest is refused | Signing a manifest that names no version, lists no download, carries no digest or size, or points at plain HTTP, with the legitimate key. Only the content check can catch these. |
 | The public update key is tracked, and private keys are not | Asking `git add --dry-run`, rather than reading `.gitignore`. |
 | Nothing reaches Google | A Chromium network log of a real session. |
 
@@ -72,6 +76,29 @@ reminder:
 - The site-origin test pins the domain across eleven pages, the sitemap, the feed
   and the bucket CORS policy, because the site audit had its own hardcoded copy
   and reported all eleven pages as unlisted after the domain changed.
+- The IPC guard compares the development server as a **parsed origin**, because
+  the rule was a string prefix, and `http://127.0.0.1:5173.attacker.example/`
+  starts with `http://127.0.0.1:5173`.
+- The private-window test pins that the partition handed to the window is the one
+  that was hardened, because the partition was generated twice. The window ran on
+  a session no policy had reached, and the platform default granted it
+  geolocation. Reading the code said the private window was hardened; running it
+  said it was not.
+
+## What the unit tests cannot reach
+
+`electron/*.js` are CommonJS and call `require('electron')` inside their own
+bodies. Vite cannot intercept that — it is a real Node require, so it resolves to
+the real `electron` package, which exports the path to the binary as a string.
+Neither a `vi.mock` factory nor the alias in `vitest.config.mjs` applies to it.
+
+So anything that constructs a `BrowserWindow` cannot be driven from a unit test:
+`openPrivateWindow` and `installSecurityHandlers` are not reachable that way. The
+tests exercise the exported policy functions, which is where the decisions live,
+and use a source-level assertion for the wiring, labelled as weaker where it is
+used. What they do not do is claim coverage they do not have. The window
+construction and the runtime behaviour are proved by the scripts in the table
+above instead.
 
 ## Adding a test
 

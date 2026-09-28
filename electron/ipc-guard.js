@@ -92,10 +92,14 @@ function validateIpcSender(event, { appRoot = '', devServerUrl = '' } = {}) {
 
   if (devServerUrl) {
     try {
-      const origin = new URL(devServerUrl).origin;
-      if (url.startsWith(origin)) return null;
+      // Compared as parsed origins, not as a string prefix. A prefix match on
+      // "http://127.0.0.1:5173" also accepts
+      // "http://127.0.0.1:5173.attacker.example/", which is a different host
+      // that happens to share a prefix with it.
+      const allowedOrigin = new URL(devServerUrl).origin;
+      if (new URL(url).origin === allowedOrigin) return null;
     } catch {
-      // A malformed dev server value must not widen the rule.
+      // A malformed value on either side must not widen the rule.
     }
   }
 

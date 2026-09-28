@@ -15,6 +15,7 @@ function isHttpUrl(value) {
 
 function isSafeFileUrl(value, rootPath) {
   try {
+    if (!rootPath) return false;
     const parsed = new URL(value);
     if (parsed.protocol !== 'file:') return false;
     const filePath = path.resolve(fileURLToPath(parsed));
@@ -25,8 +26,46 @@ function isSafeFileUrl(value, rootPath) {
   }
 }
 
-function isAllowedRendererNavigation(value, rootPath) {
-  return isHttpUrl(value) || isSafeFileUrl(value, rootPath);
+/**
+ * Where the privileged renderer is allowed to navigate.
+ *
+ * This is the interface, and it holds the bridge to the vault. A website that
+ * could become the interface would inherit that bridge, so the answer cannot be
+ * "any HTTPS address": a navigation to an attacker's page that kept working
+ * would hand the vault to whoever served it.
+ *
+ * Two things are allowed and nothing else:
+ *
+ *   - a file inside the built renderer, which is the interface itself and the
+ *     assets it loads. Not the whole application directory: that would also
+ *     cover main-process source, and a narrower root is a stricter one.
+ *   - the development server, in development only.
+ *
+ * Websites belong in the sandboxed webviews, which is where they already are, and
+ * a link out of the interface is opened in the system browser by
+ * setWindowOpenHandler.
+ */
+function isAllowedRendererNavigation(value, rendererRoot, { devServerUrl = '' } = {}) {
+  if (isSafeFileUrl(value, rendererRoot)) return true;
+
+  if (devServerUrl) {
+    try {
+      const dev = new URL(devServerUrl);
+      // Loopback only. A development server on a real interface address is not
+      // a private channel, and treating it as one would reopen the hole the old
+      // http branch was.
+      if (dev.hostname !== '127.0.0.1' && dev.hostname !== 'localhost') return false;
+      // The exact origin, compared as a parsed origin rather than as a prefix:
+      // a prefix match on "http://127.0.0.1:5173" also accepts
+      // "http://127.0.0.1:5173.attacker.example/".
+      if (new URL(value).origin === dev.origin) return true;
+    } catch {
+      // A malformed value on either side must not widen the rule.
+      return false;
+    }
+  }
+
+  return false;
 }
 
 function isAllowedGuestNavigation(value) {
@@ -86,7 +125,8 @@ async function openExternalSafely(value) {
 
 function installSecurityHandlers({
   getWindow,
-  appRoot,
+  rendererRoot = '',
+  devServerUrl = '',
   isDeveloperToolsEnabled = () => false,
   getSettings = () => ({}),
   siteSafety = null,
@@ -108,7 +148,27 @@ function installSecurityHandlers({
       }
       const allowed = isGuest
         ? isAllowedGuestNavigation(url)
-        : (contents.__novarisExtensionPopup && String(url).startsWith('chrome-extension://')) || isAllowedRendererNavigation(url, appRoot);
+        : (contents.__novarisExtensionPopup && String(url).startsWith('chrome-extension://'))
+          || isAllowedRendererNavigation(url, rendererRoot, { devServerUrl });
+      if (!allowed) event.preventDefault();
+    });
+
+    // A redirect is not a navigation as far as will-navigate is concerned, so
+    // without this an attacker only needs a 302 from a permitted address to
+    // reach a forbidden one. A file cannot redirect, so this is only meaningful
+    // for the guest and the extension popup, but it is checked on the same rule
+    // rather than on a separate one.
+    contents.on('will-redirect', (event, url) => {
+      if (isGuest) {
+        const threat = siteSafety?.classify(url);
+        if (threat) {
+          event.preventDefault();
+          reportBlockedSite(contents, url, threat);
+        }
+        return;
+      }
+      const allowed = (contents.__novarisExtensionPopup && String(url).startsWith('chrome-extension://'))
+        || isAllowedRendererNavigation(url, rendererRoot, { devServerUrl });
       if (!allowed) event.preventDefault();
     });
 
@@ -299,6 +359,7 @@ module.exports = {
   isSecureOrigin,
   installSecurityHandlers,
   isAllowedGuestNavigation,
+  isAllowedRendererNavigation,
   isHttpUrl,
   openExternalSafely,
   shortcutFor,

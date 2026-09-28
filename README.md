@@ -29,7 +29,7 @@ against a developer's build. The full measurements are in the
 | **Credential guard** | A saved login is only ever filled into the host it was saved for, and a page imitating a known sign-in provider raises a warning first. |
 | **Website Trust Card** | Per-site panel: encryption, granted permissions, which extensions can read the page, ads stopped, and a local phishing verdict with its reasons. |
 | **Phishing detection** | Entirely on-device. Catches lookalike characters, digit substitution, internationalised domains, and real brands parked in front of another address. |
-| **Private windows** | A separate window on non-persistent storage with its own random partition, so nothing survives closing it and two private windows cannot see each other. |
+| **Private windows** | A separate window on non-persistent storage with its own random partition, so nothing survives closing it and two private windows cannot see each other. It gets **no privileged bridge at all**, and grants only fullscreen. |
 | **Gaming Mode** | Unloads inactive tabs rather than hiding them, refuses notifications, and stops the spellchecker. The cost is stated in the interface. |
 | **Side panel** | Discord, YouTube, Spotify, Canvas, Mail and a Notes scratchpad beside the tabs. Only the open app is loaded. |
 | **Media controls** | Transport, seek, volume and picture-in-picture for whatever the page is playing. Only a fixed command set can be sent to a page. |
@@ -37,7 +37,7 @@ against a developer's build. The full measurements are in the
 | **Saved pages** | Offline reading from a sandboxed capture that carries the address and time it was taken, and refuses pages that would not save usefully. |
 | **Tab transfer** | Device to device on the local network with no server. Encrypted before it moves, authorised by a 100-bit pairing code. |
 | **Updates** | Ask first, show the size, verify the manifest signature and a published SHA-512, then install. No forced updates. |
-| **Security** | IPC sender validation, a `default-src 'none'` policy with Trusted Types, deny-by-default permissions on every session including private windows, and CodeQL with dependency scanning on every push. |
+| **Security** | IPC sender validation, a `default-src 'none'` policy with Trusted Types, deny-by-default permissions on every session, no privileged preload on any page, an interface that cannot navigate itself to a website, and CodeQL with dependency scanning on every push. |
 
 ### What it does not do
 

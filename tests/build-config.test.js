@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -143,5 +146,47 @@ describe('Novaris build configuration', () => {
     // NSIS-only. On Linux a package manager must not delete user data.
     expect(build.nsis.deleteAppDataOnUninstall).toBe(true);
     expect(build.linux.deleteAppDataOnUninstall).toBeUndefined();
+  });
+
+  // Release trust. An update fetched over plain http can be rewritten on the way
+  // by anyone on the path, and the manifest would then describe their file.
+  it('refuses to bundle a plain-http update channel', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'novaris-channel-'));
+    try {
+      fs.mkdirSync(path.join(dir, 'scripts'), { recursive: true });
+      fs.copyFileSync(
+        path.join(process.cwd(), 'scripts', 'write-update-channel.mjs'),
+        path.join(dir, 'scripts', 'write-update-channel.mjs'),
+      );
+      const manifest = { ...pkg, build: { ...build, publish: { provider: 'generic', url: 'http://updates.example.com' } } };
+      fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(manifest), 'utf8');
+      let failed = false;
+      try {
+        execFileSync(process.execPath, [path.join(dir, 'scripts', 'write-update-channel.mjs')], { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (error) {
+        failed = true;
+        expect(`${error.stdout || ''}${error.stderr || ''}`).toMatch(/must be an https URL/);
+      }
+      expect(failed).toBe(true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('bundles an https update channel', () => {
+    const generated = path.join(process.cwd(), 'assets', 'update-channel.json');
+    if (!fs.existsSync(generated)) return; // written by prebuild
+    const channel = JSON.parse(fs.readFileSync(generated, 'utf8'));
+    expect(channel.feedUrl).toMatch(/^https:\/\//);
+  });
+
+  // An artifact whose name carries no version cannot be replaced in place without
+  // a cache seeing something change under the same URL, so the version is part
+  // of the identity.
+  it('names every artifact after its version', () => {
+    const version = pkg.version;
+    for (const name of [build.win.artifactName, build.linux.artifactName]) {
+      expect(String(name)).toContain('${version}');
+    }
   });
 });

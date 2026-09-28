@@ -25,7 +25,26 @@ A page is not a diminished interface. It has no path to the filesystem, no path
 to the vault, and no path to the main process. The preload script is the only
 bridge and it is attached to the interface, never to a page.
 
-*Enforced in* `electron/security.js` (`will-attach-webview`), `src/components/WebviewSurface.jsx`.
+A private window is a page, and it is held to the same rule. It receives **no
+preload at all**, so the privileged surface is not merely refused there, it is
+absent. It used to receive the full bridge while loading an arbitrary website,
+which meant every site opened privately was handed the vault, the filesystem
+operations, the extension manager and the updater. The IPC guard refused those
+calls, but handing a site a privileged API and relying on every call failing is
+not a boundary, it is a hope.
+
+The interface itself cannot be navigated off its own resources. It may load
+files inside the built `dist/` directory and, in development, the development
+server's exact origin. It may **not** load any `http` or `https` address, so it
+cannot become a website while keeping its bridge. Links and popups out of the
+interface are opened in the system browser. Pages belong in the sandboxed
+webviews, which is where they already are, and a redirect is checked on the same
+rule as a navigation, because `will-navigate` is not emitted for one.
+
+*Enforced in* `electron/security.js` (`will-attach-webview`,
+`isAllowedRendererNavigation`), `electron/private-window.js`,
+`src/components/WebviewSurface.jsx`.
+*Covered by* `tests/security-boundaries.test.js`.
 
 ---
 
@@ -46,11 +65,16 @@ All channels pass through one guard, which requires:
 4. a development origin is only honoured when one is configured, and only on
    loopback
 
+The development origin is compared as a **parsed origin**, not as a string
+prefix. A prefix match on `http://127.0.0.1:5173` also accepts
+`http://127.0.0.1:5173.attacker.example/`, which is a different host sharing a
+prefix; that was a real defect and is now covered by a test.
+
 A refusal rejects the promise with a reason, so the caller can tell "blocked"
 from "nothing happened".
 
 *Enforced in* `electron/ipc-guard.js`, wired in `electron/ipc.js`.
-*Covered by* `tests/ipc-guard.test.js`.
+*Covered by* `tests/ipc-guard.test.js`, `tests/security-boundaries.test.js`.
 
 ---
 
@@ -104,8 +128,24 @@ use a random partition, and before this listened for `session-created` those
 windows had no handler at all and fell back to the platform default, which is to
 allow.
 
-*Enforced in* `electron/main.js` (`installPermissionPolicy`), policy in `electron/security.js`.
-*Covered by* `tests/permissions.test.js`.
+A private window is held to a stricter policy of its own, because it has no
+interface to prompt from and a prompt nobody can answer honestly is not a prompt.
+It grants **only** `fullscreen` and `automatic-fullscreen`, by allowlist, and
+refuses everything else including anything Chromium adds later. Camera and
+microphone in a private window are therefore refused rather than granted, which
+is a deliberate trade: a video call in a private window will not work. The
+alternative, silently granting a microphone to a window with no visible control,
+is worse.
+
+The partition a private window runs on is the same one that was hardened. It used
+to be generated twice — once for the session being hardened and once in the
+window preferences — so the window always ran on a session no policy had reached,
+and the platform default granted it geolocation and notifications. That was
+found by running the built application, not by reading it.
+
+*Enforced in* `electron/main.js` (`installPermissionPolicy`), policy in `electron/security.js`,
+private policy in `electron/private-window.js`.
+*Covered by* `tests/permissions.test.js`, `tests/private-window.test.js`, `tests/security-boundaries.test.js`.
 
 ---
 
@@ -220,18 +260,43 @@ substituted URL or hash is refused rather than downloaded.
   characters it does not recognise, so junk prepended to a signature decodes to
   the same bytes and verifies. It cannot forge anything, but several texts were
   accepted for one manifest. Canonical encoding is now required.
+- Being signed is not the same as being usable, so the manifest's **shape** is
+  checked too. A manifest that names no version, lists no download, carries no
+  real SHA-512 or no size, or points at anything other than HTTPS is refused
+  even when correctly signed. Ownership of the repository is not a substitute
+  for a signature, and a signature is not a substitute for a well-formed file.
+- Nothing is downloaded unless the feed verified in this session, so a later
+  download call cannot proceed on state that was set by another route.
 - The publisher refuses to upload an unsigned manifest, and says so in the dry
   run that people actually run first.
 - The **private** key is written to `~/.novaris`, outside the repository, and
   the build fails if any private key is ever tracked.
 
+**What SHA-512 does and does not do.** The digest in the manifest proves the
+downloaded bytes are the bytes that were published. It does **not** prove who
+published them — a digest is a checksum, not a signature, and anyone who can
+change the manifest can change the digest to match their own file. Publisher
+authentication is the Ed25519 manifest signature. Integrity is SHA-512 plus the
+signature; neither is a claim about who built the installer, which is what a
+certificate would say.
+
 `verifyUpdateCodeSignature` was found to be a silent no-op: electron-updater
 returns early when `publisherName` is absent, so the project claimed to verify
 update signatures while verifying none. It is now off rather than on and doing
 nothing, with a test that fails if the flag and the name are ever set apart.
+Turning it on before a real certificate is in place would make every update
+fail closed with no way to install one, which is a worse outcome than not
+checking.
+
+**What is still required for real publisher authentication on Windows:** a code
+signing certificate from a CA the OS trusts, added to
+`build.win.certificateFile`, and the rebuild verified with `Get-AuthenticodeSignature`.
+Nothing in this repository substitutes for that, and the installer is currently
+unsigned. The Ed25519 manifest signature already covers the update path
+independently of any certificate.
 
 *Code in* `electron/update-signing.js`, `electron/updater.js`, `scripts/sign-update-manifests.mjs`.
-*Covered by* `tests/update-signing.test.js`, `tests/build-config.test.js`, `tests/signing-key-ignore.test.js`.
+*Covered by* `tests/update-signing.test.js`, `tests/security-boundaries.test.js`, `tests/publish-release.test.js`, `tests/build-config.test.js`, `tests/signing-key-ignore.test.js`.
 
 ---
 
@@ -386,3 +451,4 @@ Stated here so they are not buried.
 | Passkeys create but do not assert | Electron draws no account chooser, so a passkey can be saved and then not used. A broken promise in a security feature, and worse than not having it. |
 | No crash reporting | By design. It also means crashes are invisible to us. |
 | Extension support | Manifest V3 background workers do not run. Detected and labelled, not spoofed. |
+| Camera and microphone in a private window | Refused rather than granted. A private window has no interface to prompt from, and a prompt nobody can answer honestly is not a prompt. A video call opened privately will not work. |

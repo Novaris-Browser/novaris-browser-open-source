@@ -50,10 +50,11 @@ function isNovarisProtocolUrl(value) {
 const privateWindows = new Set();
 
 function createPrivateWindow(initialUrl = 'about:blank') {
-  const preloadPath = path.join(__dirname, 'preload.js');
+  // No preload is passed, and none should be. A private window shows untrusted
+  // website content with no Novaris interface in it, so the privileged bridge
+  // has nothing to serve there. See electron/private-window.js.
   const { window, partition } = openPrivateWindow({
     siteSafety: siteSafetyManager,
-    getPreloadPath: () => preloadPath,
     isDeveloperToolsEnabled: () => Boolean(store?.snapshot().settings.developerTools),
     initialUrl,
     parent: getWindow(),
@@ -284,7 +285,11 @@ function startWindowsApplication() {  return app.whenReady().then(async () => {
     installContentSecurityPolicy();
     installSecurityHandlers({
       getWindow,
-      appRoot,
+      // The interface may load its own built assets and nothing else. main.js
+      // builds the renderer into dist/, so that directory is the trust boundary,
+      // not the whole application folder.
+      rendererRoot: path.join(appRoot, 'dist'),
+      devServerUrl: process.env.VITE_DEV_SERVER_URL || '',
       isDeveloperToolsEnabled: () => store.snapshot().settings.developerTools,
       getSettings: () => store.snapshot().settings,
       siteSafety: siteSafetyManager,

@@ -33,7 +33,7 @@ describe('Novaris private windows: partition isolation', () => {
 
 describe('Novaris private windows: tightened preferences', () => {
   it('keeps every security boundary the normal window has', () => {
-    const prefs = privateWebPreferences({ preloadPath: 'x', developerTools: false });
+    const prefs = privateWebPreferences({ developerTools: false });
     expect(prefs.sandbox).toBe(true);
     expect(prefs.contextIsolation).toBe(true);
     expect(prefs.nodeIntegration).toBe(false);
@@ -41,8 +41,17 @@ describe('Novaris private windows: tightened preferences', () => {
     expect(prefs.allowRunningInsecureContent).toBe(false);
   });
 
+  it('attaches no privileged preload at all', () => {
+    // A private window shows untrusted website content. It used to receive the
+    // full contextBridge, which handed every site opened privately the vault,
+    // the filesystem operations, the extension manager and the updater.
+    expect(Object.keys(privateWebPreferences({ developerTools: true }))).not.toContain('preload');
+    // And it cannot be reintroduced by passing one in.
+    expect(Object.keys(privateWebPreferences({ preloadPath: 'x', developerTools: true }))).not.toContain('preload');
+  });
+
   it('locks down what a private window does not need', () => {
-    const prefs = privateWebPreferences({ preloadPath: 'x' });
+    const prefs = privateWebPreferences();
     // No nested webviews, so a private page cannot open a view that would
     // inherit or leak the session.
     expect(prefs.webviewTag).toBe(false);
@@ -61,15 +70,21 @@ describe('Novaris private windows: session hardening', () => {
     return {
       requestHandler: null,
       checkHandler: null,
+      deviceHandler: null,
       setPermissionRequestHandler(fn) { this.requestHandler = fn; },
       setPermissionCheckHandler(fn) { this.checkHandler = fn; },
+      setDevicePermissionHandler(fn) { this.deviceHandler = fn; },
     };
   }
 
-  it('refuses notifications and background sync in a private window', () => {
+  it('refuses the identifying, notifying and hardware permissions', () => {
     const s = fakeSession();
     hardenPrivateSession(s);
-    for (const permission of ['notifications', 'background-sync', 'background-fetch', 'periodic-background-sync']) {
+    for (const permission of [
+      'notifications', 'background-sync', 'background-fetch', 'periodic-background-sync',
+      'geolocation', 'camera', 'microphone', 'midi', 'midiSysex', 'clipboard-read',
+      'clipboard-sanitized-write', 'sensors', 'idle-detection', 'pointer-lock', 'openExternal',
+    ]) {
       let requestAnswer = null;
       // The request handler takes a callback; the check handler returns a value.
       // Both are exercised, because Electron uses one for asking and one for
@@ -80,14 +95,31 @@ describe('Novaris private windows: session hardening', () => {
     }
   });
 
-  it('does not blanket-deny permissions a page legitimately needs to work', () => {
-    // Denying everything would break video calls and logins, which is not what a
-    // private window is for. Only the identifying and notifying ones are refused.
+  it('denies permissions it has never heard of, which is the whole point', () => {
+    // The old policy was a denylist, so anything Chromium added in a later
+    // version was granted until someone remembered to add it here.
+    const s = fakeSession();
+    hardenPrivateSession(s);
+    for (const permission of ['some-future-permission', 'usb', 'serial', 'hid', 'bluetooth', 'display-capture']) {
+      let answer = null;
+      s.requestHandler(null, permission, (value) => { answer = value; });
+      expect(answer).toBe(false);
+    }
+  });
+
+  it('allows only fullscreen, so ordinary video still works', () => {
     const s = fakeSession();
     hardenPrivateSession(s);
     let answer = null;
-    s.requestHandler(null, 'clipboard-read', (value) => { answer = value; });
+    s.requestHandler(null, 'fullscreen', (value) => { answer = value; });
     expect(answer).toBe(true);
+    expect(s.checkHandler(null, 'automatic-fullscreen')).toBe(true);
+  });
+
+  it('never grants hardware access', () => {
+    const s = fakeSession();
+    hardenPrivateSession(s);
+    expect(s.deviceHandler(null, 'camera')).toBe(false);
   });
 
   it('survives a session that refuses to register handlers', () => {
