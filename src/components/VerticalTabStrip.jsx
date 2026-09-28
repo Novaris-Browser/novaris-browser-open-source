@@ -41,10 +41,10 @@ function TabPreview({ tab, position }) {
   );
 }
 
-function TabRow({ tab, active, dragging, splitArmed, inSplit, onSelect, onClose, onDragStart, onDragOver, onDrop, onDragEnd, onHover, onLeave, onContextMenu, onDropForSplit }) {
+function TabRow({ tab, active, dragging, inSplit, onSelect, onClose, onDragStart, onDragOver, onDrop, onDragEnd, onHover, onLeave, onContextMenu }) {
   return (
     <div
-      className={`vtab${active ? ' is-active' : ''}${dragging ? ' is-dragging' : ''}${splitArmed ? ' is-split-armed' : ''}${inSplit ? ' is-in-split' : ''}${tab.pinned ? ' is-pinned' : ''}`}
+      className={`vtab${active ? ' is-active' : ''}${dragging ? ' is-dragging' : ''}${inSplit ? ' is-in-split' : ''}${tab.pinned ? ' is-pinned' : ''}`}
       role="tab"
       aria-selected={active}
       draggable
@@ -77,17 +77,6 @@ function TabRow({ tab, active, dragging, splitArmed, inSplit, onSelect, onClose,
       >
         <X size={12} />
       </button>
-      {splitArmed ? (
-        <span
-          className="vtab-split-band"
-          role="button"
-          tabIndex={-1}
-          aria-label={`Open ${tab.title || 'this tab'} beside the one you are dragging`}
-          title="Drop here to open side by side"
-          onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = 'copy'; }}
-          onDrop={onDropForSplit}
-        />
-      ) : null}
     </div>
   );
 }
@@ -108,7 +97,8 @@ export default function VerticalTabStrip({
   onCreateWorkspace,
   onDeleteGroup,
   onDuplicateTab,
-  splitTabId = '',
+  splitTabIds = [],
+  onDragStateChange = () => {},
   onSplitWith = () => {},
   onCloseSplit = () => {},
   onToggleMute,
@@ -234,36 +224,24 @@ export default function VerticalTabStrip({
                   tab={tab}
                   active={tab.id === activeTabId}
                   dragging={dragging === tab.id}
-                  // While a tab is being dragged, every other row grows a band on
-                  // its trailing edge. Dropping on the row reorders as it always
-                  // did; dropping on the band opens a side-by-side view, so the
-                  // two gestures never have to be guessed apart.
-                  splitArmed={Boolean(dragging) && dragging !== tab.id}
-                  inSplit={tab.id === splitTabId}
+                  inSplit={splitTabIds.includes(tab.id)}
                   onSelect={onSelectTab}
                   onClose={onCloseTab}
                   onHover={startPreview}
                   onLeave={cancelPreview}
                   onContextMenu={(event, target) => { event.preventDefault(); setMenu({ type: 'tab', tab: target, x: event.clientX, y: event.clientY }); }}
-                  onDragStart={(event, tabId) => { event.dataTransfer.setData('text/novaris-tab', tabId); event.dataTransfer.effectAllowed = 'copyMove'; setDragging(tabId); }}
-                  onDragOver={(event, tabId) => { event.preventDefault(); event.dataTransfer.dropEffect = dragging && dragging !== tabId ? 'copy' : 'move'; }}
-                  onDrop={(event, tabId) => handleDrop(event, tabId, tab.groupId || '')}
-                  onDragEnd={() => { setDragging(''); cancelPreview(); }}
-                  onDropForSplit={(event, tabId) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const dragged = event.dataTransfer.getData('text/novaris-tab');
-                    if (dragged) {
-                      // The tab that was dropped onto is the one the user aimed
-                      // at, so it takes the primary pane. Without this the two
-                      // panes would show the dragged tab and whichever tab
-                      // happened to be active, and the target would appear
-                      // nowhere, which is not what dropping onto a tab implies.
-                      onSelectTab(tabId);
-                      onSplitWith(dragged);
-                    }
-                    setDragging('');
+                  onDragStart={(event, tabId) => {
+                    event.dataTransfer.setData('text/novaris-tab', tabId);
+                    event.dataTransfer.effectAllowed = 'copyMove';
+                    setDragging(tabId);
+                    // The panes need to know a tab is in flight so they can offer
+                    // their drop edges. Zen works the same way: the sidebar is the
+                    // source and the page area is the target.
+                    onDragStateChange(tabId);
                   }}
+                  onDragOver={(event, tabId) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }}
+                  onDrop={(event, tabId) => handleDrop(event, tabId, tab.groupId || '')}
+                  onDragEnd={() => { setDragging(''); onDragStateChange(''); cancelPreview(); }}
                 />
               ))}
             </div>
@@ -286,16 +264,16 @@ export default function VerticalTabStrip({
       {menu?.type === 'tab' && (
         <div className="vstrip-menu" style={{ top: menu.y, left: menu.x }} onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={() => { onDuplicateTab(menu.tab.id); setMenu(null); }}><Copy size={12} />Duplicate</button>
-          {menu.tab.id === splitTabId ? (
+          {splitTabIds.includes(menu.tab.id) ? (
             <button type="button" onClick={() => { onCloseSplit(); setMenu(null); }}><X size={12} />Close side-by-side</button>
           ) : (
             <button
               type="button"
               onClick={() => { onSplitWith(menu.tab.id); setMenu(null); }}
-              title={menu.tab.id === activeTabId ? 'The other pane shows this tab' : ''}
+              title="Shows this page beside the one you are looking at"
             >
               <Columns2 size={12} />
-              {menu.tab.id === activeTabId ? 'Focus this pane' : 'Open in split view'}
+              Open in split view
             </button>
           )}
           <button type="button" onClick={() => { onToggleMute(menu.tab.id); setMenu(null); }}>

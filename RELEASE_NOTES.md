@@ -61,6 +61,70 @@ whether to accept that trade is your decision, not a default worth imposing.
 Turn on strict blocking to include it.
 
 
+Side-by-side view, a name for the new tab, and audio that keeps playing
+=======================================================================
+
+Side-by-side view
+-----------------
+
+Up to four pages at once, laid out the way Zen Browser does it.
+
+The earlier attempt was two columns and a band on the edge of a tab. It worked,
+but it was not what was asked for, and it was not finished either: the module
+that computed the layout had no importer anywhere in the application, so the only
+part of the feature that ever reached anyone was the sidebar app rail.
+
+What it does now:
+
+  * Drag a tab out of the list and drop it on the left or right edge of a page.
+    The edge you are over lights up, so there is no guessing about which side it
+    will land on.
+  * Up to four panes. A fifth is refused with a reason rather than becoming a
+    sliver nobody can read.
+  * Drag the divider between two panes to change their widths. A pane can never
+    be dragged below seven percent of the window, because a page too narrow to
+    read is worse than no split at all. The divider also responds to the arrow
+    keys, since a separator nobody can reach without a mouse is not a control.
+  * Every pane has its own handle and its own button to take it out. Remove the
+    last one and the view ends.
+  * Right-click any tab for "Open in split view" if dragging is not convenient.
+
+Two bugs were hiding in the layout code the whole time, and both only appeared
+once something actually called it. It preferred the tab already on screen as the
+second pane, so a split could show the same page twice. And it did not exclude a
+new tab, which has nothing to place beside one.
+
+A note on what this is not: Zen's internal tree structure is not reproduced, and
+neither are the horizontal and grid layouts its keyboard shortcuts produce. What
+is here is the part you can see and use.
+
+
+Your name
+---------
+
+First-run setup now asks what to call you, and the new tab page greets you by
+name. It is used for the greeting and nothing else. There is no account, so
+there is nothing for it to be attached to and nowhere for it to be sent.
+
+The greeting is the largest thing on the new tab page now, and it covers the
+whole day rather than the working hours: good night before five and after ten,
+good morning until noon, good afternoon until six, good evening until ten. The
+earlier version had no night at all, so anyone using the browser at 11pm was
+told good evening.
+
+
+Audio keeps playing
+-------------------
+
+Switching tabs used to mute them. That is now a setting, on by default, so music
+and calls carry on while you read something else. The webview stops throttling
+its timers to match, because a throttled page stops producing audio and the
+setting would otherwise appear to do nothing.
+
+Gaming Mode still silences everything unconditionally, since a suspended page
+making noise at nobody is the thing it exists to prevent.
+
+
 Side panel, media controls, saved pages and tab transfer
 =======================================================
 

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ArrowLeftRight,
   BookOpen,
   Command,
-  Crosshair,
   Download,
   FilePlus2,
   Globe2,
@@ -15,7 +13,6 @@ import {
   Search,
   Settings2,
   Star,
-  X,
 } from 'lucide-react';
 import BootScreen from './components/BootScreen';
 import ContextMenu from './components/ContextMenu';
@@ -44,7 +41,9 @@ import VerticalTabStrip from './components/VerticalTabStrip';
 import AppRail from './components/AppRail';
 import MediaBar from './components/MediaBar';
 import TabTransferPanel from './components/TabTransferPanel';
-import { resolveLayout } from '../electron/sidebar-layout';
+import { APPS_RAIL_WIDTH } from '../electron/sidebar-layout';
+import { paneWidths } from '../electron/split-view';
+import SplitView from './components/SplitView';
 import { useBrowser } from './hooks/useBrowser';
 import { displayUrl, isSecureUrl } from './lib/url';
 
@@ -141,10 +140,9 @@ export default function App() {
   const dark = browser.settings.theme === 'dark' || (browser.settings.theme === 'system' && systemDark);
   const activeTab = browser.activeTab;
 
-  // Split view geometry. resolveLayout lives in the main process module that
-  // already owns this arithmetic, including the rule that a split is refused
-  // rather than squeezing both columns past readability, so the decision is not
-  // duplicated in the renderer.
+  // Split view geometry. paneWidths lives in the main process module that owns
+  // the arithmetic, including the rule that a pane is never narrower than the
+  // minimum, so the renderer does not repeat any of it.
   const [viewportWidth, setViewportWidth] = useState(() => (typeof window === 'undefined' ? 0 : window.innerWidth));
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -152,25 +150,15 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const splitTab = useMemo(
-    () => browser.tabs.find((tab) => tab.id === browser.splitTabId) || null,
-    [browser.tabs, browser.splitTabId],
+  // Space the panes actually get: the window less the tab list and, if it is
+  // open, the app rail.
+  const splitAvailable = Math.max(0, viewportWidth - 232 - (appsOpen ? APPS_RAIL_WIDTH : 0));
+  const splitWidths = useMemo(
+    () => (browser.isSplitOpen ? paneWidths(browser.split, splitAvailable) : []),
+    [browser.isSplitOpen, browser.split, splitAvailable],
   );
 
-  const splitLayout = useMemo(
-    () => resolveLayout({
-      mode: splitTab ? 'split' : 'single',
-      viewportWidth,
-      appsOpen,
-      verticalTabsOpen: true,
-    }),
-    [splitTab, viewportWidth, appsOpen],
-  );
-
-  // When the layout is too narrow the second pane is dropped, and the header
-  // with its close button goes with it, so the user is not left with a pane they
-  // cannot dismiss.
-  const splitShowable = Boolean(splitTab) && !splitLayout.splitDeclined && splitLayout.secondary > 0;
+  const [draggingTabId, setDraggingTabId] = useState('');
 
   const openSettings = (section = 'general') => {
     setSettingsSection(section);
@@ -272,9 +260,10 @@ export default function App() {
         onSetupMaster={browser.setupVaultMaster}
         vaultStatus={browser.vaultStatus}
         platform={browser.platform}
-        onComplete={async ({ searchEngine, makeDefault, startupBehavior, theme: themeChoice, clearOnExit }) => {
+        onComplete={async ({ searchEngine, displayName, makeDefault, startupBehavior, theme: themeChoice, clearOnExit }) => {
           await browser.updateSettings({
             searchEngine,
+            displayName,
             startupBehavior,
             theme: themeChoice,
             clearOnExit,
@@ -420,8 +409,9 @@ export default function App() {
               onDuplicateTab={browser.duplicateTab}
               onToggleMute={browser.toggleTabMute}
               onMoveToWorkspace={browser.moveTabToWorkspace}
-              splitTabId={browser.splitTabId}
-              onSplitWith={browser.openSplitWith}
+              splitTabIds={browser.isSplitOpen ? browser.split.tabIds : []}
+              onDragStateChange={setDraggingTabId}
+              onSplitWith={browser.openSplit}
               onCloseSplit={browser.closeSplit}
             />
             <AppRail
@@ -431,10 +421,28 @@ export default function App() {
               onSelectApp={setActiveAppId}
             />
             <div
-              className={`webview-layer${splitShowable ? ' is-split' : ''}`}
+              className={`webview-layer${browser.isSplitOpen ? ' is-split' : ''}`}
               aria-hidden={activeTab?.isNewTab || activeTab?.isInternalPage ? 'true' : 'false'}
             >
-              <div className="webview-pane" style={splitShowable && splitLayout.primary ? { width: `${splitLayout.primary}px` } : undefined}>
+              {browser.isSplitOpen ? (
+                <SplitView
+                  split={browser.split}
+                  tabs={browser.tabs}
+                  widths={splitWidths}
+                  draggingTabId={draggingTabId}
+                  onDropTab={browser.addTabToSplit}
+                  onUnsplit={browser.removeFromSplit}
+                  onFocusPane={browser.focusSplitPane}
+                  onResize={browser.resizeSplit}
+                  onClose={browser.closeSplit}
+                  onEvent={browser.handleWebviewEvent}
+                  registerRef={browser.registerWebview}
+                  developerTools={browser.settings.developerTools}
+                  gamingMode={browser.settings.gamingMode}
+                  backgroundAudio={browser.settings.backgroundAudio !== false}
+                />
+              ) : null}
+              <div className="webview-pane" style={browser.isSplitOpen ? { display: 'none' } : undefined}>
                 {browser.tabs.map((tab) => tab.hasWebView && (
                   <WebviewSurface
                     key={tab.id}
@@ -448,50 +456,6 @@ export default function App() {
                   />
                 ))}
               </div>
-              {splitShowable && (
-                <div className="webview-pane is-secondary" style={splitLayout.secondary ? { width: `${splitLayout.secondary}px` } : undefined}>
-                  <div className="split-pane-head">
-                    <span className="split-pane-title" title={splitTab.url || ''}>{splitTab.title || 'New Tab'}</span>
-                    <button
-                      className="split-pane-button"
-                      type="button"
-                      onClick={browser.swapSplit}
-                      aria-label="Swap the two panes"
-                      title="Swap the two panes"
-                    >
-                      <ArrowLeftRight size={12} />
-                    </button>
-                    <button
-                      className="split-pane-button"
-                      type="button"
-                      onClick={() => browser.activateTab(splitTab.id)}
-                      aria-label="Focus this pane"
-                      title="Focus this pane"
-                    >
-                      <Crosshair size={12} />
-                    </button>
-                    <button
-                      className="split-pane-button"
-                      type="button"
-                      onClick={browser.closeSplit}
-                      aria-label="Close the side-by-side view"
-                      title="Close the side-by-side view"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                  <WebviewSurface
-                    tab={splitTab}
-                    active
-                    secondary
-                    onEvent={browser.handleWebviewEvent}
-                    registerRef={browser.registerWebview}
-                    developerTools={browser.settings.developerTools}
-                    gamingMode={browser.settings.gamingMode}
-                    backgroundAudio={browser.settings.backgroundAudio !== false}
-                  />
-                </div>
-              )}
             </div>
             {activeTab?.isNewTab && (
               <NewTabPage

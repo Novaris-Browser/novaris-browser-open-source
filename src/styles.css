@@ -148,16 +148,35 @@ kbd { display: inline-grid; place-items: center; min-width: 17px; height: 18px; 
 .webview-surface { position: absolute; inset: 0; display: flex; width: 100%; height: 100%; border: 0; background: #fff; opacity: 1; transition: opacity .2s ease; }
 .webview-surface.is-hidden { z-index: 0; opacity: 0; pointer-events: none; }
 
-/* Side-by-side view. The layer becomes a row of panes; each pane keeps the
-   absolutely positioned webviews inside it so a single webview element still
-   fills whatever column it lands in. */
-.webview-layer.is-split { display: flex; flex-direction: row; }
-.webview-pane { position: relative; flex: 1 1 auto; min-width: 0; height: 100%; overflow: hidden; }
-.webview-layer.is-split .webview-pane.is-secondary { flex: 0 0 auto; border-left: 1px solid var(--glass-border-soft); }
+/* The name field on the first-run welcome step. */
+.onboarding-name-field {
+  display: flex; flex-direction: column; gap: 6px;
+  margin: 18px 0 4px; padding: 14px 16px;
+  border: 1px solid var(--glass-border-soft); border-radius: 12px;
+  background: var(--glass-soft);
+}
+.onboarding-name-field > span { color: var(--text-soft); font-size: 12px; letter-spacing: .01em; }
+.onboarding-name-field input {
+  width: 100%; padding: 9px 11px;
+  color: var(--text); background: rgba(0, 0, 0, .18);
+  border: 1px solid var(--glass-border-soft); border-radius: 9px;
+  font-family: inherit; font-size: 15px; letter-spacing: -.01em;
+}
+.onboarding-name-field input:focus { outline: none; border-color: rgba(124, 140, 255, .6); box-shadow: 0 0 0 3px rgba(124, 140, 255, .16); }
+.onboarding-name-field input::placeholder { color: var(--text-faint); }
+.onboarding-name-field small { color: var(--text-faint); font-size: 10.5px; line-height: 1.5; }
+
+/* Side-by-side view, laid out the way Zen does it: a row of panes with a
+   draggable divider between each pair, and a drop edge on either side of a pane
+   while a tab is being dragged out of the list. */
+.split-view { position: absolute; inset: 0; display: flex; flex-direction: row; z-index: 2; }
+.split-cell { position: relative; display: flex; min-width: 0; height: 100%; }
+.split-pane { position: relative; flex: 1 1 auto; min-width: 0; height: 100%; overflow: hidden; background: #fff; }
+.split-pane.is-focused { box-shadow: inset 0 0 0 1px rgba(124, 140, 255, .38); }
 
 .split-pane-head {
   position: absolute; inset: 0 0 auto 0; z-index: 3;
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 6px;
   height: 30px; padding: 0 6px 0 10px;
   background: var(--glass-soft); border-bottom: 1px solid var(--glass-border-soft);
   backdrop-filter: blur(14px);
@@ -167,6 +186,8 @@ kbd { display: inline-grid; place-items: center; min-width: 17px; height: 18px; 
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   color: var(--text-soft); font-size: 10px; letter-spacing: .01em;
 }
+.split-pane-controls { display: inline-flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.split-pane-grip { display: inline-flex; color: var(--text-faint); opacity: .6; cursor: grab; }
 .split-pane-button {
   display: inline-flex; align-items: center; justify-content: center;
   flex: 0 0 auto; width: 20px; height: 20px; padding: 0;
@@ -175,15 +196,32 @@ kbd { display: inline-grid; place-items: center; min-width: 17px; height: 18px; 
 }
 .split-pane-button:hover { color: var(--text); background: var(--glass); border-color: var(--glass-border-soft); }
 
-/* The trailing band a tab grows while a drag is in flight. It is the only place
-   a drop opens a split, so reordering keeps working exactly as before. */
-.vtab-split-band {
-  position: absolute; top: 3px; right: 2px; bottom: 3px; width: 7px;
-  border-radius: 3px; background: transparent;
-  border-right: 2px dashed transparent;
+.split-divider {
+  position: relative; z-index: 4; flex: 0 0 auto; width: 7px; cursor: col-resize;
+  background: transparent; transition: background .15s ease;
 }
-.vtab.is-split-armed .vtab-split-band { border-right-color: var(--accent-dim, rgba(124,140,255,.55)); background: rgba(124,140,255,.10); }
-.vtab.is-split-armed:hover .vtab-split-band { background: rgba(124,140,255,.24); }
+.split-divider::after {
+  content: ''; position: absolute; inset: 0 3px;
+  background: var(--glass-border-soft); border-radius: 2px;
+}
+.split-divider:hover::after, .split-divider.is-dragging::after { background: var(--accent-dim, #7c8cff); }
+.split-divider:focus-visible { outline: 2px solid var(--accent-dim, #7c8cff); outline-offset: -2px; }
+
+/* The drop target that tells you which side the tab will land on. Shown only on
+   the edge the pointer is actually over, so the gesture is unambiguous. */
+.split-drop-edge { position: absolute; top: 0; bottom: 0; z-index: 5; pointer-events: none; }
+.split-drop-edge.is-left { left: 0; width: 28%; background: rgba(124, 140, 255, .16); border-right: 2px solid rgba(124, 140, 255, .55); }
+.split-drop-edge.is-right { right: 0; width: 28%; background: rgba(124, 140, 255, .16); border-left: 2px solid rgba(124, 140, 255, .55); }
+
+.split-view-close {
+  position: absolute; top: 6px; right: 8px; z-index: 6;
+  display: inline-flex; align-items: center; gap: 3px;
+  height: 20px; padding: 0 7px;
+  color: var(--text-faint); background: var(--glass-soft);
+  border: 1px solid var(--glass-border-soft); border-radius: 7px; cursor: pointer;
+}
+.split-view-close:hover { color: var(--text); background: var(--glass); }
+
 .vtab-in-split { color: var(--accent-dim, #7c8cff); flex: 0 0 auto; }
 .vtab.is-in-split { box-shadow: inset 2px 0 0 var(--accent-dim, #7c8cff); }
 .vstrip { display: flex; flex-direction: column; width: 232px; flex: none; border-right: 1px solid var(--glass-border-soft); background: var(--glass-soft); overflow: hidden; }
@@ -421,6 +459,27 @@ kbd { display: inline-grid; place-items: center; min-width: 17px; height: 18px; 
 .new-tab-date-block h1 em { color: #a8b2ff; font-style: normal; }
 .new-tab-canvas-sunrise .new-tab-date-block h1 em { color: #ffb6a4; }
 .new-tab-canvas-forest .new-tab-date-block h1 em { color: #8fe0c4; }
+
+/* The greeting is the first thing on the page, so it is the largest thing on the
+   page. It has to stay readable with a long name, so the name wraps to its own
+   line rather than being clipped. */
+.new-tab-greeting {
+  margin: 0;
+  font-size: clamp(38px, 6.2vw, 84px);
+  font-weight: 500;
+  letter-spacing: -.05em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.new-tab-greeting-name { color: #a8b2ff; font-style: normal; }
+.new-tab-canvas-sunrise .new-tab-greeting-name { color: #ffb6a4; }
+.new-tab-canvas-forest .new-tab-greeting-name { color: #8fe0c4; }
+.new-tab-tagline {
+  margin: 12px 0 0;
+  color: rgba(229, 234, 255, .5);
+  font-size: 13px;
+  letter-spacing: -.01em;
+}
 .new-tab-clock { display: flex; align-items: flex-end; flex-direction: column; padding-bottom: 3px; }
 .new-tab-clock strong { font-size: 30px; font-weight: 500; letter-spacing: -.06em; }
 .new-tab-clock span { margin-top: 5px; color: rgba(229, 234, 255, .52); font-family: 'DM Mono', monospace; font-size: 10px; }

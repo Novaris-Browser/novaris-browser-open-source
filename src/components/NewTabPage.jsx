@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { formatClock, formatDate, formatRelativeTime } from '../lib/format';
 import { getFaviconFallback, getDomain, INTERNAL_PAGES } from '../lib/url';
+import { greetingFor } from '../../electron/greeting';
 
 function QuickSite({ item, onOpen }) {
   return (
@@ -57,8 +58,12 @@ export default function NewTabPage({ settings, bookmarks, history, onNavigate })
     }).slice(0, 5);
   }, [history]);
 
-  const hour = now.getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  // The greeting, and the person's name when setup collected one. Which greeting
+  // applies is decided in electron/greeting.js so every hour of the day can be
+  // checked without a browser. The split is only for styling the name; the comma
+  // is already part of the text, and is absent when there is no name.
+  const [greetingPart, ...nameRest] = greetingFor({ now, name: settings.displayName }).split(',');
+  const namePart = nameRest.join(',').trim();
 
   const submit = (event) => {
     event.preventDefault();
@@ -73,8 +78,11 @@ export default function NewTabPage({ settings, bookmarks, history, onNavigate })
       <div className="new-tab-content">
         <div className="new-tab-topline">
           <div className="new-tab-date-block">
-            <span className="eyebrow">{greeting}</span>
-            <h1>Make space for<br /><em>the next idea.</em></h1>
+            <h1 className="new-tab-greeting">
+              {greetingPart}
+              {namePart ? <em className="new-tab-greeting-name">, {namePart}</em> : null}
+            </h1>
+            <p className="new-tab-tagline">Make space for the next idea.</p>
           </div>
           <div className="new-tab-clock" aria-label={`Current time ${formatClock(now)}`}>
             <strong>{formatClock(now)}</strong>

@@ -44,6 +44,7 @@ export default function OnboardingPage({
 }) {
   const [step, setStep] = useState(1);
   const [searchEngine, setSearchEngine] = useState(settings.searchEngine || 'duckduckgo');
+  const [displayName, setDisplayName] = useState(settings.displayName || '');
   const [startupBehavior, setStartupBehavior] = useState(settings.startupBehavior || 'newtab');
   const [themeChoice, setThemeChoice] = useState(settings.theme || 'system');
   const [privacyMode, setPrivacyMode] = useState(settings.clearOnExit ? 'clean' : 'persistent');
@@ -103,6 +104,7 @@ export default function OnboardingPage({
     }
     await onComplete({
       searchEngine,
+      displayName: displayName.trim(),
       makeDefault: defaultRequested,
       startupBehavior,
       theme: themeChoice,
@@ -132,6 +134,21 @@ export default function OnboardingPage({
             <span className="eyebrow">Welcome to Novaris</span>
             <h1>A calmer way<br /><em>to browse.</em></h1>
             <p className="onboarding-lead">Your data stays on this device. Novaris uses a real Chromium engine, isolated page views, and an operating-system-protected vault for the credentials you choose to save.</p>
+            <label className="onboarding-name-field">
+              <span>What should Novaris call you?</span>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); next(); } }}
+                placeholder="Your first name"
+                aria-label="Your first name"
+                maxLength={40}
+                autoComplete="given-name"
+                spellCheck={false}
+              />
+              <small>Only used to greet you on the new tab page. It stays on this device, and there is no account to attach it to.</small>
+            </label>
             <div className="onboarding-benefits">
               <div><ShieldCheck size={17} /><span><strong>Private by architecture</strong><small>Pages never receive Node.js access.</small></span></div>
               <div><KeyRound size={17} /><span><strong>Your own local vault</strong><small>{platform === 'linux' ? 'Encrypted by your system keyring, never uploaded.' : 'Encrypted by Windows, never uploaded.'}</small></span></div>

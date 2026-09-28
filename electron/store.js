@@ -15,6 +15,9 @@ const DEFAULT_SETTINGS = Object.freeze({
   hardwareAcceleration: true,
   downloadDirectory: '',
   onboardingCompleted: false,
+  // Used for the greeting on the new tab page. Never leaves the device and is
+  // not part of any account, because there is no account.
+  displayName: '',
   defaultBrowserPrompted: false,
   defaultBrowserRequested: false,
   performanceMode: 'balanced',
@@ -132,6 +135,13 @@ function sanitizeSettings(current, patch = {}) {
     next.backgroundAudio = Boolean(patch.backgroundAudio);
   }
 
+  if (Object.prototype.hasOwnProperty.call(patch, 'displayName')) {
+    // Kept to a plain short name. It is rendered into the new tab page as text,
+    // and React escapes it, but a name is not a place for markup or a length
+    // that could push the clock off the page.
+    next.displayName = String(patch.displayName || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 40);
+  }
+
   if (Object.prototype.hasOwnProperty.call(patch, 'hardwareAcceleration')) {
     next.hardwareAcceleration = Boolean(patch.hardwareAcceleration);
   }
@@ -166,6 +176,7 @@ function sanitizeSettings(current, patch = {}) {
 
   for (const key of [
     'onboardingCompleted',
+    'displayName',
     'defaultBrowserPrompted',
     'defaultBrowserRequested',
     'backgroundThrottling',
