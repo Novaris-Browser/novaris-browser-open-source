@@ -21,7 +21,10 @@
     "test": "vitest run",
     "engine:spike": "node scripts/engine-spike.mjs",
     "dist": "npm run build && electron-builder --win && node scripts/write-release-notes.mjs",
-    "dist:win": "npm run build && electron-builder --win && node scripts/write-release-notes.mjs"
+    "dist:win": "npm run build && electron-builder --win && node scripts/write-release-notes.mjs",
+    "dist:linux": "bash scripts/build-linux.sh",
+    "publish:check": "node scripts/publish-release.mjs --dry-run",
+    "publish": "node scripts/publish-release.mjs"
   },
   "dependencies": {
     "electron-updater": "^6.8.9",
@@ -39,7 +42,8 @@
     "electron-builder": "^26.0.12",
     "vite": "^8.3.1",
     "vitest": "^5.0.1",
-    "wait-on": "^8.0.1"
+    "wait-on": "^8.0.1",
+    "wrangler": "^4.142.0"
   },
   "build": {
     "appId": "com.novaris.browser",
