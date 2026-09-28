@@ -9,6 +9,7 @@
   },
   "homepage": "https://novarisbrowser.example",
   "license": "MIT",
+  "desktopName": "com.novaris.browser",
   "private": true,
   "engines": {
     "node": ">=20.19.0"
@@ -94,6 +95,7 @@
       ],
       "artifactName": "Novaris-Browser-${version}-Linux.${ext}",
       "category": "Network",
+      "syncDesktopName": true,
       "synopsis": "Secure, glass-inspired desktop web browser",
       "description": "A privacy-focused desktop web browser built on Electron and Chromium, with vertical tabs, workspaces, an ad blocker, a local encrypted vault, and no account.",
       "desktop": {

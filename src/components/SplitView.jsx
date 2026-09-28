@@ -14,6 +14,63 @@ function edgeFor(event, element) {
 }
 
 /**
+ * The drop target shared by an existing pane and the single page area. Opening
+ * the very first split is the case that is easy to miss: the panes do not exist
+ * yet, so if the drop handling only lived inside a pane there would be nowhere
+ * to drag to and the feature would only be reachable from the context menu.
+ */
+function useEdgeDrop({ draggingTabId, selfId, onDropTab, index }) {
+  const [hoverEdge, setHoverEdge] = useState('');
+  const elementRef = useRef(null);
+
+  const onDragOver = useCallback((event) => {
+    if (!draggingTabId || draggingTabId === selfId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    setHoverEdge(edgeFor(event, elementRef.current || event.currentTarget));
+  }, [draggingTabId, selfId]);
+
+  const onDragLeave = useCallback((event) => {
+    // Ignore the leave events fired while moving between children of the pane,
+    // or the indicator flickers off every time the pointer crosses the page.
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    setHoverEdge('');
+  }, []);
+
+  const onDrop = useCallback((event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const dragged = event.dataTransfer.getData('text/novaris-tab');
+    const side = edgeFor(event, elementRef.current || event.currentTarget);
+    setHoverEdge('');
+    if (dragged) onDropTab(dragged, index, side);
+  }, [index, onDropTab]);
+
+  return { elementRef, hoverEdge, onDragOver, onDragLeave, onDrop };
+}
+
+/**
+ * Wraps the one page when no split is open, and offers the same left and right
+ * edges a pane offers, so the first split is made by dragging rather than by
+ * finding a menu item.
+ */
+export function SplitDropHost({ draggingTabId, onDropTab, children }) {
+  const host = useEdgeDrop({ draggingTabId, selfId: '', onDropTab, index: 0 });
+  return (
+    <div
+      ref={host.elementRef}
+      className="split-pane split-drop-host"
+      onDragOver={host.onDragOver}
+      onDragLeave={host.onDragLeave}
+      onDrop={host.onDrop}
+    >
+      {host.hoverEdge ? <span className={`split-drop-edge is-${host.hoverEdge}`} aria-hidden="true" /> : null}
+      {children}
+    </div>
+  );
+}
+
+/**
  * One page in the split. Carries the handle and the unsplit control on its top
  * edge, which is where Zen puts them, and hosts the two drop edges.
  */
@@ -32,33 +89,17 @@ function SplitPane({
   gamingMode,
   backgroundAudio,
 }) {
-  const [hoverEdge, setHoverEdge] = useState('');
-  const elementRef = useRef(null);
-
-  const onDragOver = useCallback((event) => {
-    if (!draggingTabId || draggingTabId === tab.id) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
-    setHoverEdge(edgeFor(event, elementRef.current || event.currentTarget));
-  }, [draggingTabId, tab.id]);
-
-  const onDrop = useCallback((event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const dragged = event.dataTransfer.getData('text/novaris-tab');
-    setHoverEdge('');
-    if (dragged) onDropTab(dragged, index, edgeFor(event, elementRef.current || event.currentTarget));
-  }, [index, onDropTab]);
+  const host = useEdgeDrop({ draggingTabId, selfId: tab.id, onDropTab, index });
 
   return (
     <div
-      ref={elementRef}
-      className={`split-pane${focused ? ' is-focused' : ''}${hoverEdge ? ` is-drop-${hoverEdge}` : ''}`}
+      ref={host.elementRef}
+      className={`split-pane${focused ? ' is-focused' : ''}`}
       style={width ? { width: `${width}px` } : undefined}
       onMouseDown={onFocus}
-      onDragOver={onDragOver}
-      onDragLeave={() => setHoverEdge('')}
-      onDrop={onDrop}
+      onDragOver={host.onDragOver}
+      onDragLeave={host.onDragLeave}
+      onDrop={host.onDrop}
     >
       <div className="split-pane-head">
         <span className="split-pane-title" title={tab.url || ''}>{tab.title || 'New Tab'}</span>
@@ -77,7 +118,7 @@ function SplitPane({
           </span>
         ) : null}
       </div>
-      {hoverEdge ? <span className={`split-drop-edge is-${hoverEdge}`} aria-hidden="true" /> : null}
+      {host.hoverEdge ? <span className={`split-drop-edge is-${host.hoverEdge}`} aria-hidden="true" /> : null}
       <WebviewSurface
         tab={tab}
         active

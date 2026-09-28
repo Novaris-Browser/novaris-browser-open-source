@@ -43,7 +43,7 @@ import MediaBar from './components/MediaBar';
 import TabTransferPanel from './components/TabTransferPanel';
 import { APPS_RAIL_WIDTH } from '../electron/sidebar-layout';
 import { paneWidths } from '../electron/split-view';
-import SplitView from './components/SplitView';
+import SplitView, { SplitDropHost } from './components/SplitView';
 import { useBrowser } from './hooks/useBrowser';
 import { displayUrl, isSecureUrl } from './lib/url';
 
@@ -442,19 +442,28 @@ export default function App() {
                   backgroundAudio={browser.settings.backgroundAudio !== false}
                 />
               ) : null}
+              {/* The single page view is hidden while a split is open, and so is
+                  its drop host, since the panes carry the drop edges then. */}
               <div className="webview-pane" style={browser.isSplitOpen ? { display: 'none' } : undefined}>
-                {browser.tabs.map((tab) => tab.hasWebView && (
-                  <WebviewSurface
-                    key={tab.id}
-                    tab={tab}
-                    active={tab.id === browser.activeTabId && !tab.isNewTab && !tab.isInternalPage}
-                    onEvent={browser.handleWebviewEvent}
-                    registerRef={browser.registerWebview}
-                    developerTools={browser.settings.developerTools}
-                    gamingMode={browser.settings.gamingMode}
-                    backgroundAudio={browser.settings.backgroundAudio !== false}
-                  />
-                ))}
+                {browser.isSplitOpen ? null : (
+                  <SplitDropHost
+                    draggingTabId={draggingTabId}
+                    onDropTab={browser.addTabToSplit}
+                  >
+                    {browser.tabs.map((tab) => tab.hasWebView && (
+                      <WebviewSurface
+                        key={tab.id}
+                        tab={tab}
+                        active={tab.id === browser.activeTabId && !tab.isNewTab && !tab.isInternalPage}
+                        onEvent={browser.handleWebviewEvent}
+                        registerRef={browser.registerWebview}
+                        developerTools={browser.settings.developerTools}
+                        gamingMode={browser.settings.gamingMode}
+                        backgroundAudio={browser.settings.backgroundAudio !== false}
+                      />
+                    ))}
+                  </SplitDropHost>
+                )}
               </div>
             </div>
             {activeTab?.isNewTab && (

@@ -87,6 +87,16 @@ describe('Novaris build configuration', () => {
     expect(build.linux.desktop?.entry?.Categories || '').toContain('WebBrowser');
   });
 
+  // Electron derives its app_id from desktopName, and the .desktop entry's
+  // StartupWMClass has to match it or the window is not associated with its
+  // launcher or taskbar entry. desktopName is a top-level package.json field,
+  // not a build key, which is why it is read from pkg rather than from build.
+  it('gives the Linux desktop entry a window association', () => {
+    expect(pkg.desktopName).toBeTruthy();
+    expect(pkg.desktopName).not.toMatch(/[/\\]/);
+    expect(build.linux.syncDesktopName).toBe(true);
+  });
+
   it('depends on the keyring library the vault needs on Linux', () => {
     // The vault refuses to store anything without a Secret Service provider, so
     // a package that does not pull in libsecret leaves the feature dead.

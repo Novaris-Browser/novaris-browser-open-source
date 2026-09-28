@@ -120,10 +120,23 @@ export function useBrowser() {
     applySplit((current) => addPane(current, tabId, { atIndex: 0, side: SIDES.right }));
   }, [applySplit]);
 
-  /** Drops a tab into the pane at `index`, on the given side of it. */
+  /**
+   * Drops a tab into the pane at `index`, on the given side of it. When there is
+   * no split yet the page currently on screen becomes the first pane, because
+   * dropping something "beside this page" has to leave this page where it is. A
+   * split of one pane would render nothing at all and the user would be left
+   * staring at an empty area.
+   */
   const addTabToSplit = useCallback((tabId, index, side) => {
-    applySplit((current) => addPane(current, tabId, { atIndex: index, side }));
-  }, [applySplit]);
+    if (tabId === activeTabId) return;
+    applySplit((current) => {
+      // The seed is one pane, so its single weight is a whole share. Giving it
+      // half would make the first split lopsided.
+      const seed = current && current.tabIds.length ? current : { tabIds: [activeTabId], weights: [1], activeIndex: 0 };
+      if (!seed.tabIds.includes(activeTabId)) return seed;
+      return addPane(seed, tabId, { atIndex: index, side });
+    });
+  }, [activeTabId, applySplit]);
 
   const removeFromSplit = useCallback((tabId) => {
     applySplit((current) => removePane(current, tabId));
@@ -139,7 +152,8 @@ export function useBrowser() {
 
   const closeSplit = useCallback(() => setSplit(null), []);
 
-  const isSplitOpen = Boolean(split?.tabIds?.length);
+  // A split needs two panes to be one. One pane is just the page view again.
+  const isSplitOpen = (split?.tabIds?.length || 0) >= 2;
 
   // Closing a tab that is in a pane, or turning it into a panel, has to take the
   // pane with it or the layout points at a page that is not there.
