@@ -262,7 +262,8 @@ from a CA that verifies legal identity, and there is no free version of that.
 The alternative is distributing the root alongside the installer and letting
 each user decide, which is what `Trust-Novaris-Publisher.ps1` is for.
 
-**Who published it?** A signature over the update manifest.
+**Who published it?** A signature over the update manifest, and over the
+published checksums.
 
 A certificate says nothing about the bucket. If the feed were writable by
 anyone, or the response altered in transit, a correctly signed installer would
@@ -272,6 +273,21 @@ the manifest said so.
 So the manifest is signed too, with **Ed25519**, and verified against a public
 key bundled in the application *before* the updater will act on it. A
 substituted URL or hash is refused rather than downloaded.
+
+**The first download has no manifest.** Someone who has never run Novaris
+before cannot compare anything, because there is nothing in their possession to
+compare it against. Every release therefore also publishes a `checksums.txt`
+listing the SHA-256 of each installer, signed with the same key.
+`scripts/verify-download.mjs` checks three things in order and says which one
+failed: that the signature is valid, that the file is the one this release
+names, and that the bytes match.
+
+The signature is the part that matters. A checksums file served next to the
+download proves nothing by itself, because whoever replaced the download can
+replace the digests too. The public key is therefore the root of trust, and it
+has to come from the repository or an installed copy rather than from the same
+place as the download. That limit is stated in the tool's own output rather than
+left for someone to work out.
 
 - The signature covers the whole manifest, not a chosen subset of fields.
 - A **missing** signature is a failure, not a pass. Treating its absence as

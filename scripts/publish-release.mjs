@@ -18,6 +18,7 @@
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,6 +36,7 @@ const CONTENT_TYPES = {
   '.yml': 'application/yaml; charset=utf-8',
   '.blockmap': 'application/octet-stream',
   '.AppImage': 'application/octet-stream',
+  '.txt': 'text/plain; charset=utf-8',
 };
 
 // Versioned files can be cached forever. The manifests name the current release,
@@ -46,6 +48,10 @@ const CACHE = {
   '.blockmap': 'public, max-age=31536000, immutable',
   '.exe': 'public, max-age=31536000, immutable',
   '.deb': 'public, max-age=31536000, immutable',
+  // checksums.txt is named without a version, so it names the current release
+  // the same way latest.yml does. Caching it would tell a user their download is
+  // the published one when it is being checked against the wrong release.
+  '.txt': 'no-cache, no-store, must-revalidate',
 };
 
 const fail = (message) => {
@@ -53,7 +59,18 @@ const fail = (message) => {
   process.exit(1);
 };
 
-const { verifyManifest, readPublicKey } = await import('../electron/update-signing.js');
+const { verifyManifest, readPublicKey, signManifest } = await import('../electron/update-signing.js');
+
+const readPrivateKey = () => {
+  const flag = process.argv.indexOf('--private-key');
+  const file = flag !== -1 && process.argv[flag + 1]
+    ? path.resolve(process.argv[flag + 1])
+    : path.join(os.homedir(), '.novaris', 'update-signing-key.pem');
+  if (!fs.existsSync(file)) {
+    fail(`No update signing key at ${file}. Create one with:  node scripts/create-update-key.mjs`);
+  }
+  return fs.readFileSync(file, 'utf8');
+};
 
 const publicKey = (() => {
   try {
@@ -143,6 +160,39 @@ for (const item of uploads) {
   console.log(`    ${mark} ${item.name}  ${size.toLocaleString()} bytes${expected ? '  (verified against manifest)' : ''}`);
   if (!sizeOk) fail(`${item.name} is ${size} bytes but the manifest says ${expected.size}.`);
   if (!hashOk) fail(`${item.name} does not match the SHA-512 in the manifest. Do not publish.`);
+}
+
+// The signed checksums file, which is what lets somebody verify a first
+// download. The update manifests cover every download after the first, so this
+// is the only thing standing between the website and a substituted installer.
+//
+// Generated here rather than in a separate step, so it cannot be published
+// stale, and after the pre-flight above, so the digests are taken from files
+// that have already been confirmed to be the ones the manifests describe.
+const installers = [...new Map(
+  uploads.filter((u) => u.fromManifest).map((u) => [u.name, u]),
+).values()].sort((a, b) => a.name.localeCompare(b.name));
+
+if (installers.length) {
+  const checksumsBody = [
+    '# Novaris Browser release checksums',
+    `# version ${version}`,
+    '#',
+    '# SHA-256 of every published installer, signed with the same Ed25519 key the',
+    '# application uses to verify updates. See scripts/verify-download.mjs.',
+    '',
+    ...installers.map((item) => `${crypto.createHash('sha256').update(fs.readFileSync(item.local)).digest('hex')}  ${item.name}`),
+    '',
+  ].join('\n');
+
+  const signedChecksums = signManifest(checksumsBody, readPrivateKey());
+  if (!verifyManifest(signedChecksums, publicKey).ok) {
+    fail('The signed checksums file did not verify. Do not publish.');
+  }
+  const checksumsPath = path.join(releaseDir, 'checksums.txt');
+  fs.writeFileSync(checksumsPath, signedChecksums, 'utf8');
+  uploads.push({ name: 'checksums.txt', local: checksumsPath, fromManifest: null });
+  console.log('  ok    checksums.txt written and signed');
 }
 
 // A manifest the updater will refuse is worse than no release at all, because

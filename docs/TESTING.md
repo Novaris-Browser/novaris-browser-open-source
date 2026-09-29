@@ -38,6 +38,7 @@ place since an earlier commit and would have failed every build.
 | The public update key is tracked, and private keys are not | Asking `git add --dry-run`, rather than reading `.gitignore`. |
 | Nothing reaches Google | A Chromium network log of a real session. |
 | The Linux build starts and its boundaries hold | The built `.deb`'s own payload, booted in WSL. A site in a private window has no bridge and is denied geolocation; the interface can still IPC and still cannot navigate itself to a website. |
+| A tampered download is refused | Running `scripts/verify-download.mjs` against a real signed installer, then a copy with one byte flipped at the same length, an unsigned checksums file, one signed by a different key, a digest edited after signing, and a file that is not part of the release. The genuine file passes; each of the other five is refused, and the tool names which of its three checks failed. |
 
 ## What is not covered
 

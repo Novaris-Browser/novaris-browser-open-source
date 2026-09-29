@@ -12,7 +12,7 @@ const realVersion = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.j
 // The publisher imports the signing module from the project root, so the fixture
 // has to provide it.
 const require = createRequire(import.meta.url);
-const { generateKeyPair, writePublicKey } = require('../electron/update-signing.js');
+const { generateKeyPair, readPublicKey, verifyManifest, writePublicKey } = require('../electron/update-signing.js');
 
 let dir = '';
 
@@ -49,6 +49,11 @@ function makeProject({
   const { generateKeyPair, writePublicKey, signManifest } = require('../electron/update-signing.js');
   const { publicKeyPem, privateKeyPem } = generateKeyPair();
   writePublicKey(path.join(dir, 'assets', 'update-public-key.pem'), publicKeyPem);
+  // The publisher also signs the checksums file it uploads, and it never looks
+  // for a private key that is not handed to it: the default is the real
+  // ~/.novaris key, which a test must not touch. Written here and passed with
+  // --private-key.
+  fs.writeFileSync(path.join(dir, 'private.pem'), privateKeyPem, 'utf8');
   fs.writeFileSync(
     path.join(dir, 'package.json'),
     JSON.stringify({ name: 'novaris-browser', version: packageVersion }),
@@ -90,7 +95,11 @@ function makeProject({
 
 function run(bucket = 'test-bucket') {
   try {
-    const out = execFileSync(process.execPath, [path.join(dir, 'scripts', 'publish-release.mjs'), '--dry-run'], {
+    const out = execFileSync(process.execPath, [
+      path.join(dir, 'scripts', 'publish-release.mjs'),
+      '--dry-run',
+      '--private-key', path.join(dir, 'private.pem'),
+    ], {
       cwd: dir,
       encoding: 'utf8',
       env: { ...process.env, R2_BUCKET: bucket },
@@ -126,6 +135,40 @@ describe('release publishing safety rules', () => {
     expect(out).toContain('latest-linux.yml');
     expect(out).toContain('.exe');
     expect(out).toContain('.deb');
+  });
+
+  // The update manifests protect every download after the first. The checksums
+  // file is the only thing protecting the first one, and it is only useful if it
+  // is actually published.
+  it('publishes a signed checksums file listing every installer', () => {
+    const release = makeProject({ windows: true, linux: true });
+    const { code, out } = run();
+    expect(code, out).toBe(0);
+    expect(out).toContain('checksums.txt written and signed');
+
+    const text = fs.readFileSync(path.join(release, 'checksums.txt'), 'utf8');
+    expect(text).toContain('Novaris-Browser-x-Setup.exe');
+    expect(text).toContain('Novaris-Browser-x-Linux.deb');
+    // Signed with the fixture's key, which is the one the fixture published as
+    // the public key. An unsigned checksums file proves nothing.
+    expect(verifyManifest(text, readPublicKey(path.join(dir, 'assets', 'update-public-key.pem'))))
+      .toMatchObject({ ok: true });
+  });
+
+  it('records the digest of the file, not the digest of the manifest', () => {
+    const release = makeProject({ windows: true });
+    run();
+    const text = fs.readFileSync(path.join(release, 'checksums.txt'), 'utf8');
+    const exe = fs.readFileSync(path.join(release, 'Novaris-Browser-x-Setup.exe'));
+    expect(text).toContain(crypto.createHash('sha256').update(exe).digest('hex'));
+  });
+
+  it('marks the checksums file uncacheable, because it is not versioned', () => {
+    // It is named without a version, so a cached copy describes an older
+    // release. That is how a user is told their download is genuine when it is
+    // not.
+    const scriptText = fs.readFileSync(script, 'utf8');
+    expect(scriptText).toMatch(/'\.txt':\s*'no-cache/);
   });
 
   // The whole point of the pre-flight: a tampered or truncated build must never

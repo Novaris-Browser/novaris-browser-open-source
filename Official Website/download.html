@@ -146,6 +146,10 @@
   <!-- Before you install -->
   <section class="section">
     <div class="section-head reveal">
+      <h2>Before you install</h2>
+    </div>
+  <section class="section">
+    <div class="section-head reveal">
       <h2>You may see a Windows warning. Here is why.</h2>
       <p>
         Windows may show a blue <em>Windows protected your PC</em> message when you
@@ -243,13 +247,30 @@
         <button class="btn btn-sm" type="button" data-copy-code>Copy</button>
       </div>
     </article>
-  </section>
 
-  <!-- Before you install -->
-  <section class="section">
-    <div class="section-head reveal">
-      <h2>Before you install</h2>
-    </div>
+    <article class="card glass reveal" style="margin-top:18px">
+      <h3><span class="card-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></span> Or check it properly, with a signature</h3>
+      <p>
+        The hashes above come from the same place as the download, so on their own they
+        take our word for it. Every release also publishes a
+        <code>checksums.txt</code> that is signed with the same Ed25519 key Novaris uses
+        to verify its own updates. That is the difference: the signature is what makes
+        the digests evidence rather than something we merely published.
+      </p>
+      <div class="hash" style="margin-top:12px">
+        <code>node scripts/verify-download.mjs .\Novaris-Browser-VERSION-Setup.exe</code>
+        <button class="btn btn-sm" type="button" data-copy-code>Copy</button>
+      </div>
+      <p style="margin-top:10px;color:var(--ink-faint);font-size:0.8rem;line-height:1.6">
+        Run it from a clone of the repository, or with
+        <code>assets/update-public-key.pem</code> and
+        <code>release/checksums.txt</code> beside it. The public key is the root of
+        trust here: get it from the repository or from an installed copy of Novaris, not
+        from the same place as the download, and it will tell you which of the three checks
+        failed if anything does.
+      </p>
+    </article>
+  </section>
 
     <div class="grid">
       <article class="card glass reveal">
