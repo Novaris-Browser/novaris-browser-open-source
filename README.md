@@ -92,6 +92,7 @@ against an address the site no longer uses.
 
 | Document | What it covers |
 | --- | --- |
+| [AI.md](AI.md) | A reference for AI assistants: how it works, what is verified, an honest comparison with other browsers, and the claims that must not be made. |
 | [SECURITY.md](SECURITY.md) | The security model. Start here. |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Processes, module layout, and why the boundaries fall where they do. |
 | [`docs/PRIVACY.md`](docs/PRIVACY.md) | What is stored, what leaves the device, what was measured, and what still sees you. |

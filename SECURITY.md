@@ -262,6 +262,27 @@ from a CA that verifies legal identity, and there is no free version of that.
 The alternative is distributing the root alongside the installer and letting
 each user decide, which is what `Trust-Novaris-Publisher.ps1` is for.
 
+**An unresolved conflict about the licence affects this, and it is worth
+saying plainly.** `package.json` declares `MIT`; `LICENSE` is the
+*Novaris Browser Source-Available License*, which reserves all rights and
+grants viewing and personal use only. Those are opposites, and the difference
+is not cosmetic:
+
+- The licence and the repository visibility together determine **who is able to
+  verify anything**. A proprietary licence in a private repository is the
+  configuration with the least external verifiability available. Nobody outside
+  the project can read the build scripts, reproduce a release, or check that the
+  published binary came from this source.
+- It also determines whether **SignPath Foundation** will sign releases for
+  free. They require an OSI-approved licence without commercial
+  dual-licensing, so the current `LICENSE` disqualifies the project outright,
+  and no amount of good code changes that.
+
+Until the two files agree, nobody should describe this project as MIT-licensed,
+and nobody should describe its code as unusable by others. Both are unsupported.
+`tests/licence-consistency.test.js` prints the conflict on every run and fails
+if the documentation stops acknowledging it.
+
 **Who published it?** A signature over the update manifest, and over the
 published checksums.
 
