@@ -23,23 +23,30 @@ function isHttpUrl(value) {
 }
 
 /**
- * Is this a file:// URL inside the installed application?
+ * Is this a file:// URL inside the built renderer?
  *
  * The renderer is loaded from disk, so the set of files that count as the
- * application is knowable. A file:// URL anywhere else on the machine is a
- * local HTML file someone opened, and must not inherit the privileges of the
- * browser's own interface.
+ * interface is knowable: the `dist` directory and nothing else. A file:// URL
+ * anywhere else on the machine is a local HTML file someone opened, and must
+ * not inherit the privileges of the browser's own interface.
+ *
+ * The root is deliberately `dist` and not the whole application directory. It
+ * used to be the application root, which is wider than the navigation policy in
+ * electron/security.js, so the two disagreed about what "our own document" meant:
+ * a file inside the application but outside `dist` could not be navigated to and
+ * yet was still trusted to call privileged channels. Two boundaries with
+ * different answers is one boundary too many. Both now name the same directory.
  */
-function isRendererFileUrl(value, appRoot) {
+function isRendererFileUrl(value, rendererRoot) {
   const fs = require('node:fs');
   const path = require('node:path');
   const { fileURLToPath } = require('node:url');
   try {
     const parsed = new URL(String(value));
     if (parsed.protocol !== 'file:') return false;
-    if (!appRoot) return false;
+    if (!rendererRoot) return false;
     const filePath = path.resolve(fileURLToPath(parsed));
-    const relative = path.relative(path.resolve(appRoot), filePath);
+    const relative = path.relative(path.resolve(rendererRoot), filePath);
     // An empty relative path means the root itself, which is allowed.
     return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
   } catch {
@@ -58,7 +65,7 @@ function isRendererFileUrl(value, appRoot) {
  *
  * Returns a reason string when it must be refused, or null when it may proceed.
  */
-function validateIpcSender(event, { appRoot = '', devServerUrl = '' } = {}) {
+function validateIpcSender(event, { rendererRoot = '', devServerUrl = '' } = {}) {
   if (!event || !event.sender) {
     return 'The message had no sender.';
   }
@@ -88,7 +95,7 @@ function validateIpcSender(event, { appRoot = '', devServerUrl = '' } = {}) {
     return 'The sender frame reported no URL.';
   }
 
-  if (isRendererFileUrl(url, appRoot)) return null;
+  if (isRendererFileUrl(url, rendererRoot)) return null;
 
   if (devServerUrl) {
     try {

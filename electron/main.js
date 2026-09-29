@@ -304,7 +304,9 @@ function startWindowsApplication() {  return app.whenReady().then(async () => {
     registerIpcHandlers({
       app,
       getWindow,
-      appRoot,
+      // The same directory the navigation policy trusts, so the two agree on
+      // what "our own document" is. See electron/ipc-guard.js.
+      rendererRoot: path.join(appRoot, 'dist'),
       store,
       vault,
       extensionManager,

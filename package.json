@@ -95,13 +95,12 @@
         }
       ],
       "artifactName": "Novaris-Browser-${version}-Linux.${ext}",
-      "category": "Network",
+      "category": "Network;WebBrowser",
       "syncDesktopName": true,
       "synopsis": "Secure, glass-inspired desktop web browser",
       "description": "A privacy-focused desktop web browser built on Electron and Chromium, with vertical tabs, workspaces, an ad blocker, a local encrypted vault, and no account.",
       "desktop": {
         "entry": {
-          "Categories": "Network;WebBrowser;",
           "MimeType": "text/html;text/xml;application/xhtml+xml;application/xml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/novaris;"
         }
       }

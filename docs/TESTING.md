@@ -37,15 +37,17 @@ place since an earlier commit and would have failed every build.
 | A signed but malformed manifest is refused | Signing a manifest that names no version, lists no download, carries no digest or size, or points at plain HTTP, with the legitimate key. Only the content check can catch these. |
 | The public update key is tracked, and private keys are not | Asking `git add --dry-run`, rather than reading `.gitignore`. |
 | Nothing reaches Google | A Chromium network log of a real session. |
+| The Linux build starts and its boundaries hold | The built `.deb`'s own payload, booted in WSL. A site in a private window has no bridge and is denied geolocation; the interface can still IPC and still cannot navigate itself to a website. |
 
 ## What is not covered
 
 Stated so the gaps are visible.
 
-- **The Linux package has never been launched.** It builds, the structure and the
-  manifest hash verify, but there was no display available in the environment used
-  to build it. A Linux build with a rendering problem would not be caught by
-  anything here.
+- **The Linux package has been started, but not looked at.** It boots, the
+  renderer loads, IPC works and the private-window boundary holds — all proved
+  against the built payload. No display was available, so nothing was ever
+  actually drawn: a build that rendered the wrong pixels, or a window that
+  appeared off-screen, would not be caught by anything here.
 - **The visual layout is not tested.** No screenshot comparison, so a change that
   looks wrong but works is not caught.
 - **No end-to-end test through the interface.** A gesture is simulated in the DOM
@@ -53,6 +55,36 @@ Stated so the gaps are visible.
   and a synthetic one would not be caught.
 - **WebRTC, passkeys and the certificate are documented limitations**, not fixed
   features, and no test asserts them as working.
+
+## The Linux package
+
+`release/Novaris-Browser-0.9.0-Linux.deb`, 102,390,236 bytes, built in WSL because
+electron-builder cannot cross-compile.
+
+What was verified against the built package, not the configuration:
+
+| | |
+|---|---|
+| Control fields | `novaris-browser` 0.9.0, amd64, `libsecret-1-0` among the dependencies |
+| Manifest integrity | `latest-linux.yml` size and SHA-512 match the `.deb` byte for byte |
+| Desktop entry | Present, `Exec` is an absolute path, `StartupWMClass=com.novaris.browser` matches the app id, `x-scheme-handler/novaris` is registered |
+| It starts | Booted under WSL, DevTools endpoint answered in 1s, `app.asar/dist/index.html` loaded, profile written |
+| The boundaries hold on Linux | The interface can IPC, cannot navigate itself to a website, and a site in a private window has no bridge and is denied geolocation and notifications |
+
+Two packaging defects were found this way, both invisible in the configuration:
+
+- `desktop.entry.Categories` is **overwritten** by electron-builder with
+  `linux.category` and ignored entirely, so the first `.deb` shipped
+  `Categories=Network;` with no `WebBrowser` and the app could be filed in the
+  wrong menu section. `linux.category` now carries the value, and a test asserts
+  it lives in the field the builder actually reads.
+- electron-builder creates **no `/usr/bin` entry** for a `deb`, so the binary is
+  only at `/opt/Novaris Browser/novaris-browser`. The application menu and the
+  `novaris://` handler both work, because the desktop entry's `Exec` is an
+  absolute path, but `novaris-browser` is not on `PATH` and cannot be run from a
+  terminal. Adding the symlink would mean repacking the `.deb` after the fact,
+  which would invalidate the manifest hash, so it is documented rather than
+  patched.
 
 ## Why the tests are written the way they are
 
@@ -84,6 +116,10 @@ reminder:
   a session no policy had reached, and the platform default granted it
   geolocation. Reading the code said the private window was hardened; running it
   said it was not.
+- The IPC guard test pins its `file://` trust root to `dist/`, and asserts it
+  against the navigation policy, because the root was the whole application
+  directory and therefore wider than the navigation policy. Two boundaries that
+  answer differently are one boundary too many.
 
 ## What the unit tests cannot reach
 

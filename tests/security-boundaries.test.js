@@ -62,12 +62,12 @@ describe('TEST 1: a site in a private window cannot reach the vault', () => {
     // defence. A private window is a BrowserWindow, so its sender type is
     // "window" rather than "webview" and it has to be refused on the frame URL.
     const event = { sender: windowSender(), senderFrame: frame('https://example.com') };
-    expect(validateIpcSender(event, { appRoot: APP_ROOT })).toMatch(/not by a web page/);
+    expect(validateIpcSender(event, { rendererRoot: RENDERER_ROOT })).toMatch(/not by a web page/);
   });
 
   it('refuses a vault call before the listener ever runs', async () => {
     let called = false;
-    const listener = guardIpcListener(async () => { called = true; return 'secret'; }, { appRoot: APP_ROOT });
+    const listener = guardIpcListener(async () => { called = true; return 'secret'; }, { rendererRoot: RENDERER_ROOT });
     const event = { sender: windowSender(), senderFrame: frame('https://example.com') };
     await expect(listener(event, 'entry')).rejects.toThrow(/Blocked/);
     expect(called).toBe(false);
@@ -81,7 +81,7 @@ describe('TEST 2: an untrusted iframe cannot invoke privileged IPC', () => {
       // The interface itself is genuine; the document inside it is not ours.
       senderFrame: frame('https://attacker.example', frame(RENDERER_URL)),
     };
-    expect(validateIpcSender(event, { appRoot: APP_ROOT })).toMatch(/nested frames/);
+    expect(validateIpcSender(event, { rendererRoot: RENDERER_ROOT })).toMatch(/nested frames/);
   });
 
   it('refuses a nested frame loaded from our own directory', () => {
@@ -89,7 +89,7 @@ describe('TEST 2: an untrusted iframe cannot invoke privileged IPC', () => {
       sender: windowSender(),
       senderFrame: frame('file:///C:/Program%20Files/Novaris/resources/app/dist/frame.html', frame(RENDERER_URL)),
     };
-    expect(validateIpcSender(event, { appRoot: APP_ROOT })).toMatch(/nested frames/);
+    expect(validateIpcSender(event, { rendererRoot: RENDERER_ROOT })).toMatch(/nested frames/);
   });
 
   it('refuses a webview guest whatever frame it claims to be', () => {
@@ -97,20 +97,20 @@ describe('TEST 2: an untrusted iframe cannot invoke privileged IPC', () => {
       // A guest claiming our own renderer URL is refused on its type, before the
       // URL is even looked at.
       const event = { sender: { getType: () => type }, senderFrame: frame(RENDERER_URL) };
-      expect(validateIpcSender(event, { appRoot: APP_ROOT })).toMatch(/may not call/);
+      expect(validateIpcSender(event, { rendererRoot: RENDERER_ROOT })).toMatch(/may not call/);
     }
   });
 });
 
 describe('TEST 3: the privileged renderer can still call what it needs', () => {
   it('runs the listener for the real interface document', async () => {
-    const listener = guardIpcListener(async (_event, entry) => `filled ${entry}`, { appRoot: APP_ROOT });
+    const listener = guardIpcListener(async (_event, entry) => `filled ${entry}`, { rendererRoot: RENDERER_ROOT });
     const event = { sender: windowSender(), senderFrame: frame(RENDERER_URL) };
     await expect(listener(event, 'example.test')).resolves.toBe('filled example.test');
   });
 
   it('accepts the development server, and only its exact origin', () => {
-    const dev = { appRoot: APP_ROOT, devServerUrl: 'http://127.0.0.1:5173' };
+    const dev = { rendererRoot: RENDERER_ROOT, devServerUrl: 'http://127.0.0.1:5173' };
     expect(validateIpcSender({ sender: windowSender(), senderFrame: frame('http://127.0.0.1:5173/index.html') }, dev)).toBeNull();
     // A different port is a different server.
     expect(validateIpcSender({ sender: windowSender(), senderFrame: frame('http://127.0.0.1:9999/index.html') }, dev)).toMatch(/not by a web page/);
@@ -121,7 +121,7 @@ describe('TEST 3: the privileged renderer can still call what it needs', () => {
     // accepts "http://127.0.0.1:5173.attacker.example/" — a different host that
     // happens to begin with the same characters. Each of these must now be
     // refused; the wording of the refusal is not what is being asserted.
-    const dev = { appRoot: APP_ROOT, devServerUrl: 'http://127.0.0.1:5173' };
+    const dev = { rendererRoot: RENDERER_ROOT, devServerUrl: 'http://127.0.0.1:5173' };
     for (const url of [
       'http://127.0.0.1:5173.attacker.example/',
       'http://127.0.0.1:5173.evil.test/x',
@@ -134,7 +134,28 @@ describe('TEST 3: the privileged renderer can still call what it needs', () => {
 
   it('refuses a local file that is not the application', () => {
     const event = { sender: windowSender(), senderFrame: frame('file:///C:/Users/someone/Downloads/page.html') };
-    expect(validateIpcSender(event, { appRoot: APP_ROOT })).toMatch(/Unexpected sender URL/);
+    expect(validateIpcSender(event, { rendererRoot: RENDERER_ROOT })).toMatch(/Unexpected sender URL/);
+  });
+
+  it('refuses application source, which is inside the install but not the renderer', () => {
+    // The trust root used to be the whole application directory, which is wider
+    // than the navigation policy. A document the interface is not allowed to
+    // become was still trusted to call privileged channels. Both now name dist.
+    for (const url of [
+      'file:///C:/Program%20Files/Novaris/resources/app/electron/main.js',
+      'file:///C:/Program%20Files/Novaris/resources/app/electron/preload.js',
+      'file:///C:/Program%20Files/Novaris/resources/app/package.json',
+    ]) {
+      expect(validateIpcSender({ sender: windowSender(), senderFrame: frame(url) }, { rendererRoot: RENDERER_ROOT }), url).not.toBeNull();
+    }
+  });
+
+  it('names the same trust root as the navigation policy', () => {
+    // The two were once different widths, which is one boundary too many. This
+    // fails if either is widened without the other.
+    const main = require('node:fs').readFileSync(path.join(process.cwd(), 'electron', 'main.js'), 'utf8');
+    const guards = (main.match(/rendererRoot: path\.join\(appRoot, 'dist'\)/g) || []).length;
+    expect(guards).toBe(2);
   });
 });
 

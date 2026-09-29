@@ -147,6 +147,13 @@ npm run dist:win
 npm run dist:linux
 ```
 
+Both land in `release/`, each with its own `latest*.yml` and its own SHA-512.
+
+On Linux the package installs the application under `/opt/Novaris Browser/`. It
+appears in the application menu, but there is no `/usr/bin` entry, so
+`novaris-browser` is not on `PATH` and cannot be started from a terminal; the
+binary is at the `/opt` path above.
+
 Novaris exits with an explanatory message on any other platform, which is macOS.
 
 ### Process boundaries

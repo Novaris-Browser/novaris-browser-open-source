@@ -60,14 +60,14 @@ function buildFillScript(record) {
   })()`;
 }
 
-function registerIpcHandlers({ app, getWindow, appRoot = '', store, vault, extensionManager, adblockManager, siteSafetyManager, windowsIntegration, openPrivateWindow, updateManager, resetSummary, scheduleReset, relaunch }) {
+function registerIpcHandlers({ app, getWindow, rendererRoot = '', store, vault, extensionManager, adblockManager, siteSafetyManager, windowsIntegration, openPrivateWindow, updateManager, resetSummary, scheduleReset, relaunch }) {
   // Every channel goes through here, which is the only place that has to be
   // right. A listener is only reached by the application's own renderer: not by
   // a webview page, not by an iframe, and not by anything loaded from a URL the
   // project did not build.
   const handle = (channel, listener) => {
     ipcMain.handle(channel, guardIpcListener(listener, {
-      appRoot,
+      rendererRoot,
       devServerUrl: process.env.VITE_DEV_SERVER_URL || '',
     }));
   };

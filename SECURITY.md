@@ -60,10 +60,17 @@ All channels pass through one guard, which requires:
 1. the sender is one of our own window contents — not a `webview`, not a
    `browserView`, not a remote frame
 2. the message came from the **top** frame, not an iframe inside the interface
-3. that frame is running our renderer — a `file://` URL inside the install
-   directory, or the development server origin and nothing else
+3. that frame is running our renderer — a `file://` URL inside the **built
+   `dist/` directory**, or the development server origin and nothing else
 4. a development origin is only honoured when one is configured, and only on
    loopback
+
+The `file://` trust root is `dist/`, not the whole application directory, and
+that is deliberate: it is the same directory the navigation policy will let the
+interface load. The two were once different widths, so a document the interface
+was not allowed to become — main-process source, say — was still trusted to call
+privileged channels. Two boundaries with different answers is one boundary too
+many. A test asserts they still agree.
 
 The development origin is compared as a **parsed origin**, not as a string
 prefix. A prefix match on `http://127.0.0.1:5173` also accepts

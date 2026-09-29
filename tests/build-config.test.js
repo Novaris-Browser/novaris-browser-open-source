@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -87,7 +88,44 @@ describe('Novaris build configuration', () => {
     // novaris:// links, which is how a saved page is handed to it.
     const mime = build.linux.desktop?.entry?.MimeType || '';
     expect(mime).toContain('x-scheme-handler/novaris');
-    expect(build.linux.desktop?.entry?.Categories || '').toContain('WebBrowser');
+  });
+
+  // electron-builder overwrites the desktop entry's Categories with
+  // linux.category and ignores desktop.entry.Categories entirely, so a
+  // Categories value in the config is silently discarded. The first built .deb
+  // carried "Categories=Network;" with no WebBrowser, because the config only
+  // said so in the place that does not work. Assert the field that is used.
+  it('declares the Linux menu category in the field the builder reads', () => {
+    const category = build.linux.category || '';
+    expect(category).toContain('Network');
+    expect(category).toContain('WebBrowser');
+    // And nothing claims to live in the field that is dropped, so the two
+    // cannot drift apart without a test noticing.
+    expect(build.linux.desktop?.entry?.Categories).toBeUndefined();
+  });
+
+  it('has a Linux package whose bytes match the manifest, when one is built', () => {
+    // The real integrity property, checked with node rather than assumed. The
+    // desktop entry's *contents* are checked separately by inspecting the .deb
+    // in WSL, because the configuration is not what lands in the artifact, and
+    // that is where the missing WebBrowser category was invisible.
+    //
+    // Matched on the current version rather than "the first .deb found":
+    // release/ accumulates, and a stale artifact from an earlier version
+    // sitting beside the current one is exactly what this must not read.
+    const dir = path.join(process.cwd(), 'release');
+    const expected = `Novaris-Browser-${pkg.version}-Linux.deb`;
+    if (!fs.existsSync(path.join(dir, expected))) return; // not built yet
+    const manifest = path.join(dir, 'latest-linux.yml');
+    if (!fs.existsSync(manifest)) return;
+    const text = fs.readFileSync(manifest, 'utf8');
+    const url = (text.match(/^\s*-\s*url:\s*(\S+)/m) || [])[1];
+    const declared = (text.match(/^\s*sha512:\s*(\S+)/m) || [])[1];
+    const declaredSize = Number((text.match(/^\s*size:\s*(\S+)/m) || [])[1]);
+    expect(url).toBe(expected);
+    const bytes = fs.readFileSync(path.join(dir, expected));
+    expect(bytes.length).toBe(declaredSize);
+    expect(crypto.createHash('sha512').update(bytes).digest('base64')).toBe(declared);
   });
 
   // Electron derives its app_id from desktopName, and the .desktop entry's
