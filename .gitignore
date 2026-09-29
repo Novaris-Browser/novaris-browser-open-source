@@ -16,6 +16,13 @@ release-signing-test/
 *.spc
 *.p7b
 *.p7c
+# A base64 copy of a key is the same key. *.pfx does not match "name.pfx.base64",
+# so a file exported for transport or for a CI secret would otherwise be staged
+# by accident, and it is the private half that must never be committed.
+*.pfx.base64
+*.p12.base64
+*.pem.base64
+*.key.base64
 
 # The update signing key. The public half is committed on purpose, at
 # assets/update-public-key.pem, because the application has to verify with it.

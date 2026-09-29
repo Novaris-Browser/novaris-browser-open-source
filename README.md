@@ -45,11 +45,13 @@ Listed because a security product that only lists its wins is misleading. The
 detail is on the site's limits section, in [`docs/`](docs/) and in
 [SECURITY.md](SECURITY.md).
 
-- **The installer is not signed.** No certificate, so Windows shows "Unknown
-  publisher" and SmartScreen shows its warning. The build is configured to sign
-  and the pipeline is proved working; it takes a certificate, not more code. A
-  certificate would not remove the SmartScreen warning either — that comes from
-  downloads over time.
+- **The certificate is self-signed.** Windows builds are signed and show
+  "Novaris Browser" as the publisher, but the certificate is not issued by a
+  certificate authority, so a machine that has not installed
+  `Novaris-Browser-Root.cer` still shows "Unknown publisher". A CA-issued
+  certificate is what a stranger's machine trusts, and that is not free. A
+  bought certificate would not remove the SmartScreen warning either — that
+  comes from downloads over time.
 - **A site can still learn your public IP address** through WebRTC if it configures a
   STUN server, with no permission prompt. Chromium's own switches were tested three
   ways and none of them prevented it, so there is an explicit setting instead of a

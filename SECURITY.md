@@ -242,12 +242,25 @@ This is the one place where refusing to start is the correct behaviour.
 
 Two independent questions, and they are not the same one.
 
-**Who built this file?** A code-signing certificate. Novaris is currently
-**unsigned** — there is no certificate, so Windows shows "Unknown publisher" and
-SmartScreen shows its warning. The build is configured for signing and takes the
-certificate from the environment, so signing works the moment one exists. It has
-been proved end to end with a throwaway certificate: the installer and both
-shipped binaries sign, with an RFC 3161 timestamp from a real responder.
+**Who built this file?** A code-signing certificate. Windows builds are signed
+with a certificate issued to `CN=Novaris Browser`, using the same
+`signtoolOptions` as before, and every shipped binary signs: the application,
+`elevate.exe`, the NSIS uninstaller and the installer itself, each with an
+RFC 3161 timestamp from a real responder.
+
+The certificate is **self-signed**. It proves the file was signed with a key
+whose public half is the one distributed, and it makes the publisher name
+correct. It does not prove anything about who Novaris Browser is, because
+nobody verified that. A machine which has installed `Novaris-Browser-Root.cer`
+reports the signature as `Valid`; a machine which has not reports
+`UnknownError` and shows "Unknown publisher". Signing is enabled by setting
+`CSC_LINK` and `CSC_KEY_PASSWORD` for the build, so a machine without the key
+simply produces an unsigned build rather than a failed one.
+
+Getting a certificate that a stranger's machine already trusts means buying one
+from a CA that verifies legal identity, and there is no free version of that.
+The alternative is distributing the root alongside the installer and letting
+each user decide, which is what `Trust-Novaris-Publisher.ps1` is for.
 
 **Who published it?** A signature over the update manifest.
 
@@ -452,7 +465,7 @@ Stated here so they are not buried.
 
 | | |
 |---|---|
-| Installer is unsigned | No certificate. Windows shows "Unknown publisher". Signing is configured and proved to work. |
+| Self-signed certificate | Windows builds are signed with a certificate issued to `CN=Novaris Browser`, so the publisher name is correct and tamper-evident. It is **self-signed**, not issued by a CA, so a machine that has not installed `Novaris-Browser-Root.cer` does not trust it and still shows "Unknown publisher". The root is a separate download on purpose: installing a root certificate is a decision a user should make themselves. |
 | SmartScreen warning | Reputation comes from downloads over time. It does not disappear because a certificate was bought, and even an extended-validation certificate stopped bypassing it in 2024. |
 | WebRTC public IP | A site with a STUN server can learn it. Blocking is available as a setting; there is no complete fix. |
 | Passkeys create but do not assert | Electron draws no account chooser, so a passkey can be saved and then not used. A broken promise in a security feature, and worse than not having it. |
